@@ -1,0 +1,4 @@
+# Dummy model configuration
+model_type: "cascade"
+num_stages: 3
+hidden_dim: 64

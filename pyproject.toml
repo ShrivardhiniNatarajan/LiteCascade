@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "litecascade"
+version = "0.1.0"
+description = "Lightweight, early-exit cascade for IoT malware/intrusion detection (PyTorch -> TFLite INT8)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch",
+    "torchvision",
+    "numpy",
+    "pandas",
+    "scikit-learn",
+    "pyyaml",
+    "tqdm",
+    "matplotlib",
+    "onnx",
+    "onnxruntime",
+    "tensorflow",
+    "psutil",
+    "fvcore"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["litecascade*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 130
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "N"]
+ignore = []
