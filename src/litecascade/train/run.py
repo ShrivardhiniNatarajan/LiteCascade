@@ -46,6 +46,9 @@ def get_model(model_name: str, input_dim: int):
         return B7_DSCNN(input_dim)
     if name == "b8":
         return B8_Transformer(input_dim)
+    if name == "teacher":
+        from litecascade.models.teacher import TeacherCNNBiLSTM
+        return TeacherCNNBiLSTM(input_dim, num_classes=2)
     raise ValueError(f"Unknown baseline: {model_name}")
 
 
@@ -103,6 +106,30 @@ def main():
         dummy_input = torch.randn(1, 10, len(feature_cols))
         prof = profile_model(model, dummy_input)
         test_metrics.update(prof)
+
+    if args.model.lower() == "teacher":
+        # export logits
+        model.eval()
+        with torch.no_grad():
+            from pathlib import Path
+            Path("checkpoints").mkdir(exist_ok=True)
+            
+            # Use non-shuffled train loader
+            train_loader_seq = DataLoader(train_ds, batch_size=32, shuffle=False)
+            train_logits = []
+            for X, y in train_loader_seq:
+                train_logits.append(model(X.to("cpu")).cpu())
+            train_logits = torch.cat(train_logits, dim=0)
+            
+            calib_logits = []
+            for X, y in val_loader:
+                calib_logits.append(model(X.to("cpu")).cpu())
+            calib_logits = torch.cat(calib_logits, dim=0)
+            
+            torch.save({
+                "train": train_logits,
+                "calib": calib_logits
+            }, f"checkpoints/teacher_logits_{args.dataset}.pt")
 
     save_metrics(run_id, test_metrics, args.seed, config_hash="N/A", is_emulated=(args.dataset == "fixture"))
     logger.info(f"Finished {run_id}. Test F1: {test_metrics['f1_macro']:.4f}")
