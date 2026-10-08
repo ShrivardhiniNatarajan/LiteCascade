@@ -41,3 +41,13 @@
   * Wrote tests for overlap validation, scaler statistics, window constraints, and LOFO exclusion logic.
 * **Verification output summary:** `ruff` completes with 0 errors. `pytest` executes 12 tests successfully with zero failures.
 * **Known issues:** Warning regarding `np.random.shuffle(unique_groups)` on Pandas string arrays (minor typing warning, safely operates on the underlying object list).
+
+### Stage 3: Metrics and Profiler (completed)
+* **What was done:**
+  * Implemented `metrics.py` covering all classification metrics (precision, recall, macro-f1, fpr, mcc, acc, confusion matrix stats).
+  * Added `bootstrap_metrics` for computing 95% Confidence Intervals via non-parametric bootstrapping.
+  * Implemented `profiler.py` leveraging `fvcore` for MACs/activation estimates, `psutil` for memory, `time.perf_counter` for hardware p50/p95 latency testing, and INT8/FP32 model size estimation via tmp file saves on disk.
+  * Added `expected_cost` helper that factors Sentinel-Analyst cost via $E[C] = c_1 + (1-\rho) \cdot c_2$, returning relative `speed_up`.
+  * Covered implementations comprehensively with unit tests over deterministic toy distributions and tiny manual models (e.g. tracking `nn.Linear` 55-param properties).
+* **Verification output summary:** `ruff` completes format verification, and `pytest tests/test_metrics.py tests/test_profiler.py` succeeds fully (all assertions validated on metrics definitions, zero failures). The `check_leakage` fix for Stage 2 was also included.
+* **Known issues:** `fvcore` and Torch JIT throw a minor warning regarding trace modes during profile runs, and Torch AO triggers deprecation logs; safely ignored since measurements compute fine.
