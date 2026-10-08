@@ -31,3 +31,13 @@
   * Added test cases validating the schema loaded by each data loader, ensuring data integrity post-cleaning.
 * **Verification output summary:** Both scripts ran flawlessly (`scripts/make_fixture.py` and `scripts/eda.py`). The dataset loader tests pass, verifying the schema correctness. `ruff check` passes completely.
 * **Known issues:** Real data logic in loaders throws NotImplementedError if `use_synthetic=False`, as we cannot access real raw datasets yet.
+
+### Stage 2: Preprocessing Pipeline (completed)
+* **What was done:**
+  * Implemented `splits.py` for group-aware temporal splitting (`create_group_splits`) and leave-one-family-out cross-validation (`create_lofo_split`). Verified zero group overlaps. Splits metadata mapped and saved to JSON files.
+  * Implemented `windows.py` to create sliding windows of $T$ records while strictly preventing overlap across group boundaries. Label is assigned to the last record's label.
+  * Implemented `preprocess.py` featuring a `Preprocessor` class using `RobustScaler` and `IncrementalPCA` (d=32). Strictly fits on training data and applies transform consistently. Exposes `pca.components_` and `pca.mean_` for future initialization.
+  * Implemented PyTorch Dataset/DataLoader wrappers (`dataset.py`) including a utility to compute balanced class weights.
+  * Wrote tests for overlap validation, scaler statistics, window constraints, and LOFO exclusion logic.
+* **Verification output summary:** `ruff` completes with 0 errors. `pytest` executes 12 tests successfully with zero failures.
+* **Known issues:** Warning regarding `np.random.shuffle(unique_groups)` on Pandas string arrays (minor typing warning, safely operates on the underlying object list).
