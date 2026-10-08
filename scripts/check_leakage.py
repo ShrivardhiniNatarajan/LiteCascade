@@ -18,9 +18,7 @@ def main():
     # Always load synthetic for 'fixture'
     df = load_nbaiot(use_synthetic=(args.dataset == "fixture"))
 
-    splits = create_group_splits(
-        df, dataset_name=args.dataset, ratios={"train": 0.6, "cal": 0.1, "val": 0.1, "test": 0.2}
-    )
+    splits = create_group_splits(df, dataset_name=args.dataset, ratios={"train": 0.6, "cal": 0.1, "val": 0.1, "test": 0.2})
 
     print("Checking group overlap across splits...")
     overlap_count = 0
@@ -37,11 +35,7 @@ def main():
 
     print("Fitting IPCA on train split to generate explained-variance plot...")
     train_df = df.loc[splits["train"]]
-    feature_cols = [
-        c
-        for c in df.columns
-        if c not in ["label_binary", "label_family", "group", "timestamp", "is_synthetic"]
-    ]
+    feature_cols = [c for c in df.columns if c not in ["label_binary", "label_family", "group", "timestamp", "is_synthetic"]]
 
     preproc = Preprocessor(n_components=min(32, len(feature_cols)))
     preproc.fit(train_df, feature_cols)

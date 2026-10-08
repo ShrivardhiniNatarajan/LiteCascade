@@ -56,7 +56,6 @@ def profile_model(model: nn.Module, input_tensor: torch.Tensor) -> dict[str, Any
     total_acts = acts.total()
 
     # 4. FP32 and INT8 file size
-    import os
 
     fd, path = tempfile.mkstemp(suffix=".pt")
     os.close(fd)

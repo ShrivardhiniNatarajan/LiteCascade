@@ -34,9 +34,7 @@ def generate_synthetic_data(dataset_name: str, num_rows: int = 2000) -> pd.DataF
 
     # Random timestamps over a 1 day period
     base_time = pd.Timestamp("2026-01-01")
-    df["timestamp"] = base_time + pd.to_timedelta(
-        np.random.randint(0, 86400, size=num_rows), unit="s"
-    )
+    df["timestamp"] = base_time + pd.to_timedelta(np.random.randint(0, 86400, size=num_rows), unit="s")
 
     df["is_synthetic"] = True
 

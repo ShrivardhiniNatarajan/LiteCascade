@@ -51,3 +51,12 @@
   * Covered implementations comprehensively with unit tests over deterministic toy distributions and tiny manual models (e.g. tracking `nn.Linear` 55-param properties).
 * **Verification output summary:** `ruff` completes format verification, and `pytest tests/test_metrics.py tests/test_profiler.py` succeeds fully (all assertions validated on metrics definitions, zero failures). The `check_leakage` fix for Stage 2 was also included.
 * **Known issues:** `fvcore` and Torch JIT throw a minor warning regarding trace modes during profile runs, and Torch AO triggers deprecation logs; safely ignored since measurements compute fine.
+
+### Stage 4: Baselines B1–B8 (completed)
+* **What was done:**
+  * Created `src/litecascade/models/baselines.py` housing B1 (MLP), B2 (Tree-wrapper for RF/XGBoost), B3 (LSTM), B4 (BiLSTM), B5 (BiLSTM+IPCA pipeline marker), B6 (CNN-BiLSTM), B7 (DSCNN), and B8 (Transformer).
+  * Devised `src/litecascade/train/trainer.py` to wrap PyTorch backprop + Tree `.fit()` behind a single clean `UnifiedTrainer` module, with class weights, L1-regularization for B1, early stopping and validation loops.
+  * Designed CLI runner `python -m litecascade.train.run` taking `--model`, `--dataset`, `--epochs`, generating robust deterministic results.
+  * Explicitly documented any model modifications/deviations in `docs/BASELINES.md`.
+* **Verification output summary:** PyTorch Baselines correctly instantiate and emit sensible properties (parameters/MACs > 0). The `run` CLI successfully trains B3 for 2 epochs on the fixture.
+* **Known issues:** Extremely small synthetic datasets may have a 0-item evaluation set due to strict group splitting; added a fallback guard in `trainer.py`. PyTorch 2.x `torch.ao` module gives deprecation warnings during profiling, but correctly builds quantized graphs.

@@ -35,6 +35,4 @@ def test_loader_schema(loader_func):
 
     # Check for constant columns (should be removed by the loader)
     for col in df.columns:
-        assert df[col].nunique() > 1 or col == "is_synthetic", (
-            f"Column {col} is constant but wasn't removed"
-        )
+        assert df[col].nunique() > 1 or col == "is_synthetic", f"Column {col} is constant but wasn't removed"

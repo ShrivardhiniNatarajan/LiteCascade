@@ -13,3 +13,4 @@ psutil
 fvcore
 pytest
 ruff
+xgboost

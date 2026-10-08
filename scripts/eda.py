@@ -16,11 +16,7 @@ def run_eda(dataset_name: str, df: pd.DataFrame, out_dir: Path):
 
     # 1. Feature counts & shapes
     row_count, col_count = df.shape
-    feature_cols = [
-        c
-        for c in df.columns
-        if c not in ["label_binary", "label_family", "group", "timestamp", "is_synthetic"]
-    ]
+    feature_cols = [c for c in df.columns if c not in ["label_binary", "label_family", "group", "timestamp", "is_synthetic"]]
 
     # 2. Missing, Inf, Duplicates
     num_df = df.select_dtypes(include=[np.number])
