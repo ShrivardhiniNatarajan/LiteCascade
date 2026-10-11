@@ -7,7 +7,12 @@ import numpy as np
 import psutil
 import torch
 import torch.nn as nn
-from fvcore.nn import ActivationCountAnalysis, FlopCountAnalysis, parameter_count
+
+try:
+    from fvcore.nn import ActivationCountAnalysis, FlopCountAnalysis, parameter_count
+    HAS_FVCORE = True
+except ImportError:
+    HAS_FVCORE = False
 
 
 def expected_cost(c1: float, c2: float, rho: float) -> float:
@@ -34,6 +39,11 @@ def speed_up(c1: float, c2: float, rho: float) -> float:
 
 def profile_model(model: nn.Module, input_tensor: torch.Tensor) -> dict[str, Any]:
     """Profile the model for params, MACs, size, latency, memory."""
+    if not HAS_FVCORE:
+        raise ImportError(
+            "fvcore is required for profile_model. Please install it via 'pip install fvcore' "
+            "or run within the project virtual environment (.\\.venv)."
+        )
     model.eval()
 
     # 1. Parameter count
