@@ -198,9 +198,9 @@ Each table and figure in the IEEE manuscript can be individually regenerated fro
 
 ---
 
-## 🖥️ Interactive Demo Dashboard
+## 🖥️ Interactive Demo Dashboard (React Sim + FastAPI)
 
-LiteCascade includes a multi-page interactive **Streamlit dashboard** for research presentations, defense/viva demonstrations, and visual inspection of live replayed IoT network traffic.
+LiteCascade includes a modern, high-performance **React 18 + TypeScript + Tailwind CSS** simulation dashboard wired to a thin **FastAPI** backend that runs the real inference engine on replayed IoT network traffic windows with Server-Sent Events (SSE).
 
 > [!NOTE]
 > **Research Demonstration Only**: The dashboard streams recorded test windows from the evaluation benchmarks (or continuous-integration synthetic fixtures). It demonstrates real-time cascade inference, early exit, and alert behavior; it is not a production network IDS.
@@ -208,15 +208,14 @@ LiteCascade includes a multi-page interactive **Streamlit dashboard** for resear
 ### Launching the Dashboard
 
 ```bash
-# Using Makefile:
+# Unified Single-Port Mode (React Web App + FastAPI on port 8000):
 make demo
-
-# Using the cross-platform Python runner:
-python scripts/reproduce.py --demo
-
-# Or directly via Streamlit:
-streamlit run app/main.py
+# Or directly:
+python -m uvicorn app.api.main:app --port 8000
 ```
+Open **[http://localhost:8000](http://localhost:8000)** in your browser.
+
+*(The legacy Streamlit implementation is preserved under `app_streamlit_legacy/main.py`).*
 
 ### Dashboard Pages & Visual Modules
 
@@ -309,6 +308,7 @@ In accordance with Section VII of the IEEE manuscript:
 | **13** | 2D image adapter on Malimg, multiclass macro metrics, 2D baselines | `m13-image` | ✅ Completed |
 | **14** | Paper tables (III–VI), 5 IEEE 300 DPI figures, Wilcoxon hypothesis tests | `m14-results` | ✅ Completed |
 | **15** | Reproducibility release (v1.0), MODEL_CARD, release metadata, lockfile | `v1.0` | ✅ Completed |
+| **16** | Interactive demo dashboard (Streamlit -> React 18 Sim + FastAPI) | `m16c-ui` | ✅ Completed |
 
 ---
 
