@@ -16,18 +16,26 @@ from sklearn.metrics import (
 
 
 def compute_detection_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
-    """Compute standard detection metrics for binary classification."""
-    cm = confusion_matrix(y_true, y_pred, labels=[0, 1])
-    tn, fp, fn, tp = cm.ravel()
+    """Compute standard detection metrics for binary or multiclass classification."""
+    unique_labels = np.unique(np.concatenate([y_true, y_pred]))
+    is_binary = len(unique_labels) <= 2 and np.all(np.isin(unique_labels, [0, 1]))
 
     acc = accuracy_score(y_true, y_pred)
-    prec = precision_score(y_true, y_pred, zero_division=0)
-    rec_malicious = recall_score(y_true, y_pred, zero_division=0)
     rec_macro = recall_score(y_true, y_pred, average="macro", zero_division=0)
     f1_macro = f1_score(y_true, y_pred, average="macro", zero_division=0)
     mcc = matthews_corrcoef(y_true, y_pred)
 
-    fpr = fp / (fp + tn) if (fp + tn) > 0 else 0.0
+    if is_binary:
+        cm = confusion_matrix(y_true, y_pred, labels=[0, 1])
+        tn, fp, fn, tp = cm.ravel()
+        prec = precision_score(y_true, y_pred, zero_division=0)
+        rec_malicious = recall_score(y_true, y_pred, zero_division=0)
+        fpr = fp / (fp + tn) if (fp + tn) > 0 else 0.0
+    else:
+        prec = precision_score(y_true, y_pred, average="macro", zero_division=0)
+        rec_malicious = rec_macro
+        fpr = 0.0
+        tn, fp, fn, tp = 0, 0, 0, 0
 
     return {
         "accuracy": float(acc),

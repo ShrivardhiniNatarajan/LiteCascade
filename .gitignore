@@ -32,9 +32,9 @@ env.bak/
 venv.bak/
 
 # Project specifics (NON-NEGOTIABLE RULES)
-data/
-checkpoints/
-results/
+/data/
+/checkpoints/
+/results/
 *.tflite
 *.pt
 *.pth

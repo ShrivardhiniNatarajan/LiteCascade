@@ -173,3 +173,29 @@
   * `python scripts/device/bench_rpi.py --model checkpoints/litecascade_int8.tflite --runs 100 --dry-run` succeeded with clean output and saved JSON (`measured_or_emulated: "emulated"`).
   * `python scripts/estimate_mcu.py --model checkpoints/litecascade_int8.tflite` succeeded with clean output and saved JSON (`measured_or_emulated: "estimated"`).
 * **Known issues:** None.
+
+### Stage 13: Image Adapter on Malimg (completed)
+* **Date:** 2026-10-11
+* **What was done:**
+  * Implemented `src/litecascade/data/malimg.py`:
+    * Malimg dataset loader and synthetic fixture for 25-class malware families from 64x64 grayscale byte textures.
+    * Stratified 70/15/15 train/val/test splits and Leave-One-Family-Out (LOFO) zero-leakage splits.
+  * Implemented `src/litecascade/models/litecascade2d.py`:
+    * 2D LiteCascade architecture replacing the 1D PIP stem with 2D Depthwise-Separable stem blocks (`DSBlock2D`).
+    * Preserves dual-exit Sentinel/Analyst structure with 2D inverted bottlenecks, temperature scaling parameters ($T_1, T_2$), and risk-controlled cascade gating ($\tau_0, \tau_1$).
+  * Implemented `src/litecascade/models/image_baselines.py`:
+    * `SmallCNN`: standard 3-layer 2D convolutional baseline.
+    * `MobileNetV2_Small`: lightweight depthwise-separable inverted residual baseline scaled for 64x64 inputs.
+    * `MALITE`: reference published IEEE paper baseline strictly marked `status: "reported, not re-run"`.
+    * `generate_malimg_comparison_table`: generates comparison table explicitly separating "re-run" vs "reported" baselines.
+  * Extended `src/litecascade/train/run_cascade.py` with `--adapter {sequence,image}`:
+    * Seamlessly supports training and evaluation for `LiteCascade2D` on `malimg_fixture`.
+    * Saves baseline comparison table to `results/tables/malimg.csv` and LaTeX table `malimg.tex`.
+  * Updated `src/litecascade/eval/metrics.py` to support multiclass macro metrics alongside binary metrics.
+  * Created unit test suite in `tests/test_image_adapter.py` validating 2D forward shapes, gate logic, baselines, LOFO zero-leakage, and table status separation.
+* **Verification output summary:**
+  * Full test suite: **63 passed** in ~95s (`pytest`).
+  * `ruff check src scripts tests` clean (0 errors).
+  * `pytest tests/test_image_adapter.py -q`: 6 passed in 4.58s.
+  * `python -m litecascade.train.run_cascade --dataset malimg_fixture --adapter image --epochs 2`: executed successfully, generating `results/tables/malimg.csv` with clear separation of "re-run" and "reported, not re-run" rows.
+* **Known issues:** None.
