@@ -114,3 +114,30 @@
   * Dry run execution: `python scripts/run_ablation.py --dataset fixture --seeds 2 --epochs 2` successfully executed all 10 steps across 2 seeds.
   * Aggregation: `python scripts/aggregate_ablation.py` generated `results/tables/ablation.csv` (10 rows, all std columns populated, labeled synthetic) and `results/tables/ablation.tex`.
 * **Known issues:** None.
+
+### Stage 11: Robustness and Zero-Day LOFO (completed)
+* **Date:** 2026-10-11
+* **What was done:**
+  * Created `configs/robustness.yaml` specifying LOFO evaluation parameters, perturbation conditions, and model targets.
+  * Implemented feature-level evasion emulation engine in `src/litecascade/eval/perturb.py`:
+    * Gaussian noise perturbations ($\sigma \in \{0.0, 0.05, 0.10, 0.20\}$ in scaled feature space), ensuring $\sigma=0$ returns exact identical data.
+    * Inter-arrival time jitter perturbing timing/rate features.
+    * Packet-size padding shifting byte/length features positively.
+    * Documented that these constitute feature-level EMULATIONS of evasion attacks.
+  * Implemented `tests/test_perturb.py` covering zero-sigma identity preservation, seed reproducibility, selective feature manipulation, and perturbation evaluation.
+  * Implemented `scripts/run_lofo.py` orchestrating Leave-One-Family-Out zero-day generalization across all malware families:
+    * Strict assertion in code ensuring training set contains 0 samples of the held-out family.
+    * Group-aware splits ensuring 0 group overlap between training and testing.
+    * Evaluates Teacher, B7 DSCNN, LiteCascade (R), and LiteCascade (T).
+    * Evaluates exit-induced recall loss $\Delta R$ and confirms $\Delta R \le \epsilon$.
+    * Exports `results/tables/lofo.csv` and `results/tables/lofo.tex`.
+  * Implemented `scripts/run_perturb.py` evaluating clean-trained LiteCascade against all 6 perturbation conditions:
+    * Reports Macro F1, Recall, $\rho$, and Recall Loss for each condition.
+    * Exports `results/tables/robustness.csv` and `results/tables/robustness.tex` (Table VI).
+* **Verification output summary:**
+  * Full test suite: **51 passed** in ~214s (`pytest`).
+  * `ruff check src scripts tests` clean (0 errors).
+  * `pytest tests/test_perturb.py -q`: 6 passed in 8.77s.
+  * `python scripts/run_lofo.py --dataset fixture`: successfully evaluated all 3 families with $\Delta R \le \epsilon$ on held-out families.
+  * `python scripts/run_perturb.py --dataset fixture`: successfully evaluated clean and perturbed conditions, exporting CSV and LaTeX tables.
+* **Known issues:** None.

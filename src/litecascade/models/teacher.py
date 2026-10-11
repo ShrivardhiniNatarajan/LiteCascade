@@ -32,3 +32,6 @@ class TeacherCNNBiLSTM(nn.Module):
         lstm_out, _ = self.lstm(x)
         context = self.attention(lstm_out)
         return self.fc(context)
+
+
+Teacher_CNN_BiLSTM = TeacherCNNBiLSTM

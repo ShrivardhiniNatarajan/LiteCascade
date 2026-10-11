@@ -1,0 +1,19 @@
+# configs/robustness.yaml
+# Configuration for Stage 11: Robustness and Zero-Day LOFO (Table VI)
+experiment_name: "robustness_experiments"
+dataset: "fixture"
+seed: 42
+epochs: 5
+epsilon: 0.005
+alpha: 0.05
+sigmas: [0.0, 0.05, 0.1, 0.2]
+jitter_ratio: 0.1
+pad_amount: 0.2
+models:
+  - "teacher"
+  - "b7_dscnn"
+  - "litecascade_r"
+  - "litecascade_t"
+output_dir_lofo: "results/lofo"
+output_dir_perturb: "results/perturb"
+tables_dir: "results/tables"
