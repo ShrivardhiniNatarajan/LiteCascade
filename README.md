@@ -1,11 +1,11 @@
 # LiteCascade: Lightweight Early-Exit Cascade for IoT Malware and Intrusion Detection
 
-[![Release](https://img.shields.io/badge/Release-v1.0.0-blue.svg)](https://github.com/ShrivardhiniNatarajan/LiteCascade/releases/tag/v1.0)
+[![Release](https://img.shields.io/badge/Release-v1.0.0-blue.svg)](releases/tag/v1.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-brightgreen.svg)](https://www.python.org/)
 [![PyTorch 2.5+](https://img.shields.io/badge/PyTorch-2.5%2B-ee4c2c.svg)](https://pytorch.org/)
 [![TFLite INT8](https://img.shields.io/badge/Deployment-TFLite%20INT8%20%2F%20TFLM-orange.svg)](https://www.tensorflow.org/lite)
-[![Tests](https://img.shields.io/badge/Tests-67%20Passed-success.svg)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-73%20Passed-success.svg)](tests/)
 
 **LiteCascade** is a lightweight, early-exit neural cascade architecture engineered for edge IoT network intrusion detection and malware classification. By coupling a sub-10K parameter INT8 **Sentinel** classifier with a full-capacity sequence **Analyst** model through risk-controlled, temperature-scaled confidence gating, LiteCascade achieves a **2.64x empirical inference speedup** on Raspberry Pi 4 and fits comfortably within microcontroller memory constraints (**41.93 KB** Flash, **20.0 KB** SRAM Tensor Arena) while matching full-capacity teacher detection accuracy (**97.4% Macro-F1**, bounded recall loss $\Delta R \le 0.005$).
 
@@ -21,7 +21,7 @@
 6. [On-Device Hardware Benchmarks](#-on-device-hardware-benchmarks)
 7. [Limitations & Threats to Validity](#-limitations--threats-to-validity)
 8. [Project Roadmap & Completed Milestones](#-project-roadmap--completed-milestones)
-9. [Citation & License](#-citation--license)
+9. [License](#-license)
 
 ---
 
@@ -106,7 +106,7 @@ All metrics below are 100% traceable to experimental runs in `results/` (enforce
 
 ### 1. Clone & Setup Virtual Environment
 ```bash
-git clone https://github.com/ShrivardhiniNatarajan/LiteCascade.git
+git clone https://github.com/LiteCascade/LiteCascade.git
 cd LiteCascade
 
 # Create and activate virtual environment
@@ -254,24 +254,10 @@ In accordance with Section VII of the IEEE manuscript:
 | **12** | On-device Raspberry Pi benchmarking, power logging, MCU sizing | `m12-device` | ✅ Completed |
 | **13** | 2D image adapter on Malimg, multiclass macro metrics, 2D baselines | `m13-image` | ✅ Completed |
 | **14** | Paper tables (III–VI), 5 IEEE 300 DPI figures, Wilcoxon hypothesis tests | `m14-results` | ✅ Completed |
-| **15** | Reproducibility release (v1.0), MODEL_CARD, CITATION.cff, lockfile | `v1.0` | ✅ Completed |
+| **15** | Reproducibility release (v1.0), MODEL_CARD, release metadata, lockfile | `v1.0` | ✅ Completed |
 
 ---
 
-## 📖 Citation & License
+## 📜 License
 
-### Citation
-If you use LiteCascade models, code, or benchmarks in your research, please cite our paper:
-
-```bibtex
-@article{natarajan2026litecascade,
-  title     = {LiteCascade: A Lightweight Early-Exit Cascade for IoT Malware and Intrusion Detection},
-  author    = {Natarajan, Shrivardhini},
-  journal   = {IEEE Internet of Things Journal},
-  year      = {2026},
-  note      = {Under review}
-}
-```
-
-### License
 This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
