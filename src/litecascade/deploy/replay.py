@@ -43,6 +43,10 @@ class ReplayEngine:
 
         # Resolve paths
         self.tflite_path = self._resolve_model_path(tflite_path)
+        # Gate config and provenance
+        self.gate_loaded: bool = False
+        self.gate_file_path: str | None = None
+        self.epsilon: float = 0.005
         self.gate_config = self._load_gate_config(gate_path)
 
         # Initialize model
@@ -94,12 +98,18 @@ class ReplayEngine:
                     tau_b = float(data.get("tau_b", 0.90))
                     tau_m = float(data.get("tau_m", 0.80))
                     temp = float(data.get("temperature", 1.0))
-                    logger.info(f"Loaded gate config from {c}: tau_b={tau_b:.3f}, tau_m={tau_m:.3f}, T={temp:.3f}")
+                    self.epsilon = float(data.get("epsilon", 0.005))
+                    self.gate_loaded = True
+                    self.gate_file_path = str(c)
+                    logger.info(f"Loaded gate config from {c}: tau_b={tau_b:.3f}, tau_m={tau_m:.3f}, T={temp:.3f}, eps={self.epsilon:.3f}")
                     return {"tau_b": tau_b, "tau_m": tau_m, "temperature": temp}
                 except Exception as e:
                     logger.warning(f"Error reading gate config from {c}: {e}")
 
         logger.info("Using default gate config: tau_b=0.90, tau_m=0.80, T=1.0")
+        self.gate_loaded = False
+        self.gate_file_path = None
+        self.epsilon = 0.005
         return {"tau_b": 0.90, "tau_m": 0.80, "temperature": 1.0}
 
     def _init_model(self) -> None:
@@ -151,6 +161,20 @@ class ReplayEngine:
     def clear_injected_attacks(self) -> None:
         """Clears all scheduled attack injections."""
         self.injected_attacks.clear()
+
+    def reset(self) -> None:
+        """Resets all replay telemetry, cursor, and buffers."""
+        self.events.clear()
+        self.current_index = 0
+        self.total_windows = 0
+        self.sentinel_exits = 0
+        self.analyst_exits = 0
+        self.cumulative_macs = 0.0
+        self.cumulative_latency_ms = 0.0
+        self.correct_predictions = 0
+        self.total_alerts = 0
+        self.injected_attacks.clear()
+        logger.info("Replay engine reset.")
 
     def step(self, speed_delay: float = 0.0) -> dict[str, Any]:
         """Processes the next window, executes early-exit inference, and updates telemetry."""
@@ -224,19 +248,37 @@ class ReplayEngine:
         is_correct = bool(final_pred == true_label)
         is_alert = bool(final_pred == 1)
 
+        sentinel_verdict = (
+            "Benign"
+            if (sentinel_pred == 0 and sentinel_conf >= tau_b)
+            else ("Malicious" if (sentinel_pred != 0 and sentinel_conf >= tau_m) else "Uncertain")
+        )
+        analyst_verdict = None if exited else ("Malicious" if final_pred == 1 else "Benign")
+
         event = {
             "index": self.total_windows,
+            "idx": self.total_windows,
             "window_id": idx,
+            "flow_id": f"flow_{idx}",
             "timestamp": datetime.datetime.now().strftime("%H:%M:%S.%f")[:-3],
             "prediction": final_pred,
+            "y_pred": final_pred,
             "true_label": true_label,
+            "y_true": true_label,
+            "family_pred": "benign" if final_pred == 0 else family_name,
             "confidence": round(final_conf, 4),
+            "tau_b_used": round(tau_b, 4),
+            "exit": exit_used,
             "exit_used": exit_used,
+            "sentinel_verdict": sentinel_verdict,
+            "analyst_verdict": analyst_verdict,
             "latency_ms": round(latency_ms, 3),
             "macs_m": round(macs_used, 4),
+            "macs_used": round(macs_used, 4),
             "family": family_name,
             "is_correct": is_correct,
             "is_alert": is_alert,
+            "is_injected": bool(idx in self.injected_attacks),
         }
 
         # Update telemetry

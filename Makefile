@@ -56,7 +56,11 @@ verify-numbers:
 	$(PYTHON) scripts/check_no_handwritten_numbers.py
 
 demo:
-	$(PYTHON) -m streamlit run app/main.py
+	cd web && npm run build
+	$(PYTHON) -m uvicorn app.api.main:app --port 8000
+
+demo-dev:
+	$(PYTHON) -m uvicorn app.api.main:app --reload --port 8000
 
 reproduce-fast:
 	@echo "=== [1/5] Generating Synthetic Data Fixtures ==="

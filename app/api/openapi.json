@@ -1,0 +1,490 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "LiteCascade API",
+    "description": "Risk-Controlled Early-Exit Simulation API for Resource-Constrained IoT Hardware",
+    "version": "1.2.0"
+  },
+  "paths": {
+    "/api/meta": {
+      "get": {
+        "summary": "Get Meta",
+        "description": "Returns architectural, gate, model, and dataset metadata with explicit provenance.",
+        "operationId": "get_meta_api_meta_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/stream/{action}": {
+      "post": {
+        "summary": "Control Stream",
+        "description": "Controls stream playback: start, pause, reset, or step.",
+        "operationId": "control_stream_api_stream__action__post",
+        "parameters": [
+          {
+            "name": "action",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Action"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/StreamControlRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StreamControlResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/stream/events": {
+      "get": {
+        "summary": "Stream Events",
+        "description": "Server-Sent Events endpoint streaming real-time window inferences.",
+        "operationId": "stream_events_api_stream_events_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inject": {
+      "post": {
+        "summary": "Inject Attack",
+        "description": "Injects simulated malware attack segment into the test stream.",
+        "operationId": "inject_attack_api_inject_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InjectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InjectResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/stats": {
+      "get": {
+        "summary": "Get Stats",
+        "description": "Returns live telemetry, exit rate, compute savings, latencies, and Wilson 95% CI.",
+        "operationId": "get_stats_api_stats_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/device": {
+      "get": {
+        "summary": "Get Device Benchmarks",
+        "description": "Returns measured or estimated hardware deployment benchmarks from results/device.",
+        "operationId": "get_device_benchmarks_api_device_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Device Benchmarks Api Device Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "InjectRequest": {
+        "properties": {
+          "family": {
+            "type": "string",
+            "title": "Family",
+            "description": "Target malware family name (e.g. Mirai, Tsunami, Gafgyt)"
+          },
+          "duration_windows": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Duration Windows",
+            "description": "Duration in continuous windows",
+            "default": 15
+          }
+        },
+        "type": "object",
+        "required": [
+          "family"
+        ],
+        "title": "InjectRequest"
+      },
+      "InjectResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "family": {
+            "type": "string",
+            "title": "Family"
+          },
+          "start_index": {
+            "type": "integer",
+            "title": "Start Index"
+          },
+          "duration_windows": {
+            "type": "integer",
+            "title": "Duration Windows"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "family",
+          "start_index",
+          "duration_windows"
+        ],
+        "title": "InjectResponse"
+      },
+      "MetaResponse": {
+        "properties": {
+          "data_source": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "is_synthetic": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "run_id": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "git_commit": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "model_file": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "model_format": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "gate_loaded": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "tau_b": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "tau_m": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "epsilon": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "variant": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "params": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "macs": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "d": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "c": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "T_len": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "F_in": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "available_families": {
+            "$ref": "#/components/schemas/SourcedValue"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data_source",
+          "is_synthetic",
+          "run_id",
+          "git_commit",
+          "model_file",
+          "model_format",
+          "gate_loaded",
+          "tau_b",
+          "tau_m",
+          "epsilon",
+          "variant",
+          "params",
+          "macs",
+          "d",
+          "c",
+          "T_len",
+          "F_in",
+          "available_families"
+        ],
+        "title": "MetaResponse"
+      },
+      "SourcedValue": {
+        "properties": {
+          "value": {
+            "title": "Value"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "description": "Provenance: 'live' | 'file:<path>' | 'estimated'"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value",
+          "source"
+        ],
+        "title": "SourcedValue"
+      },
+      "StatsResponse": {
+        "properties": {
+          "n": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "exit_rate": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "compute_saved_vs_always_analyst": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "latency_p50": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "latency_p95": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "accuracy": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "accuracy_ci_low": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "accuracy_ci_high": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "recall_loss": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "int8_arena_ram_kb": {
+            "$ref": "#/components/schemas/SourcedValue"
+          },
+          "gate_loaded": {
+            "$ref": "#/components/schemas/SourcedValue"
+          }
+        },
+        "type": "object",
+        "required": [
+          "n",
+          "exit_rate",
+          "compute_saved_vs_always_analyst",
+          "latency_p50",
+          "latency_p95",
+          "accuracy",
+          "accuracy_ci_low",
+          "accuracy_ci_high",
+          "recall_loss",
+          "int8_arena_ram_kb",
+          "gate_loaded"
+        ],
+        "title": "StatsResponse"
+      },
+      "StreamControlRequest": {
+        "properties": {
+          "speed": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Speed",
+            "description": "Playback speed multiplier (1, 10, 100)"
+          }
+        },
+        "type": "object",
+        "title": "StreamControlRequest"
+      },
+      "StreamControlResponse": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "is_running": {
+            "type": "boolean",
+            "title": "Is Running"
+          },
+          "speed": {
+            "type": "number",
+            "title": "Speed"
+          },
+          "total_windows": {
+            "type": "integer",
+            "title": "Total Windows"
+          },
+          "current_index": {
+            "type": "integer",
+            "title": "Current Index"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action",
+          "is_running",
+          "speed",
+          "total_windows",
+          "current_index"
+        ],
+        "title": "StreamControlResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
