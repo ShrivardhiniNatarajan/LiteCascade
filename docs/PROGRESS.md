@@ -141,3 +141,35 @@
   * `python scripts/run_lofo.py --dataset fixture`: successfully evaluated all 3 families with $\Delta R \le \epsilon$ on held-out families.
   * `python scripts/run_perturb.py --dataset fixture`: successfully evaluated clean and perturbed conditions, exporting CSV and LaTeX tables.
 * **Known issues:** None.
+
+### Stage 12: On-Device Benchmarking (completed)
+* **Date:** 2026-10-11
+* **What was done:**
+  * Implemented `scripts/estimate_mcu.py`:
+    * Analyzes `.tflite` model flatbuffers to compute Flash footprint and dynamic Tensor Arena sizing for TFLite Micro.
+    * Computes CMSIS-NN and ESP-NN cycle estimates for Sentinel and Analyst paths.
+    * Evaluates target MCU profiles (ESP32-S3, Cortex-M4, Cortex-M7, Cortex-M0+).
+    * Strictly marks all non-physical values `"estimated"` per Rule 6.
+    * Saves report to `results/device/mcu_estimates.json`.
+  * Implemented `scripts/device/bench_rpi.py`:
+    * Benchmarks INT8 TFLite model on Raspberry Pi (and dev / Docker environments) with XNNPACK delegate on and off.
+    * Tests Sentinel-only, Analyst-only, and empirical cascade execution at measured early-exit rate $\rho$.
+    * Measures p50 and p95 latency (ms), peak RSS memory (MB), and CPU utilization (%).
+    * Implements hardware detection; marks `"measured"` on physical Pi and `"emulated"` on non-Pi / dry-run.
+    * Saves report to `results/device/rpi_benchmarks.json`.
+  * Implemented `scripts/device/power_log.py`:
+    * Synchronized power profiling for I2C INA219 sensors and external USB power meter CSV exports.
+    * Computes active and idle baseline power and inference energy: $E = (P_{\text{active}} - P_{\text{idle}}) \times t_{\text{inference}}$.
+    * Produces numbers only when hardware sensor is attached or CSV is provided, with a mock dry-run mode for CI.
+    * Saves report to `results/device/power_report.json`.
+  * Wrote `scripts/device/bench_tflm.md`:
+    * Step-by-step TFLite-Micro compilation and deployment guide for ESP32-S3 and ARM Cortex-M.
+    * Static Tensor Arena allocation, C++ MicroInterpreter integration, hardware cycle counter instructions (`esp_cpu_get_cycle_count`, ARM DWT).
+    * CPU-constrained Docker container fallback commands.
+  * Added unit test suite in `tests/test_device.py` covering estimation schemas, RPi benchmark dry-runs, energy formulas, and CSV parsing.
+* **Verification output summary:**
+  * Full test suite: **57 passed** in ~108s (`pytest`).
+  * `ruff check src scripts tests` clean (0 errors).
+  * `python scripts/device/bench_rpi.py --model checkpoints/litecascade_int8.tflite --runs 100 --dry-run` succeeded with clean output and saved JSON (`measured_or_emulated: "emulated"`).
+  * `python scripts/estimate_mcu.py --model checkpoints/litecascade_int8.tflite` succeeded with clean output and saved JSON (`measured_or_emulated: "estimated"`).
+* **Known issues:** None.

@@ -286,6 +286,52 @@ def export_tflite(
     return output_path
 
 
+def export_submodels_tflite(
+    model: nn.Module,
+    output_dir: str or Path,
+    representative_dataset: np.ndarray = None,
+    int8: bool = True,
+) -> dict[str, Path]:
+    """
+    Exports separate Sentinel-only and Analyst-only TFLite models.
+    Returns:
+        Dict mapping 'sentinel' and 'analyst' to their exported Path.
+    """
+    import tensorflow as tf
+
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    full_keras = build_keras_model_from_litecascade(model)
+    sent_keras = tf.keras.Model(inputs=full_keras.inputs, outputs=full_keras.outputs[0], name="sentinel_submodel")
+    analyst_keras = tf.keras.Model(inputs=full_keras.inputs, outputs=full_keras.outputs[1], name="analyst_submodel")
+
+    suffix = "int8" if int8 else "fp32"
+    sent_path = out_dir / f"litecascade_sentinel_{suffix}.tflite"
+    analyst_path = out_dir / f"litecascade_analyst_{suffix}.tflite"
+
+    def _convert_and_save(km: tf.keras.Model, path: Path) -> Path:
+        conv = tf.lite.TFLiteConverter.from_keras_model(km)
+        if int8:
+            conv.optimizations = [tf.lite.Optimize.DEFAULT]
+            if representative_dataset is not None:
+                def rep_data_gen():
+                    n = min(len(representative_dataset), 500)
+                    for i in range(n):
+                        yield [representative_dataset[i : i + 1].astype(np.float32)]
+                conv.representative_dataset = rep_data_gen
+        buf = conv.convert()
+        with open(path, "wb") as f:
+            f.write(buf)
+        logger.info(f"Exported submodel {path.name} ({len(buf)/1024:.2f} KB)")
+        return path
+
+    s_out = _convert_and_save(sent_keras, sent_path)
+    a_out = _convert_and_save(analyst_keras, analyst_path)
+
+    return {"sentinel": s_out, "analyst": a_out}
+
+
 class TFLiteInterpreterWrapper:
     """
     Inference wrapper around tf.lite.Interpreter.
