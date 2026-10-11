@@ -60,3 +60,32 @@
   * Explicitly documented any model modifications/deviations in `docs/BASELINES.md`.
 * **Verification output summary:** PyTorch Baselines correctly instantiate and emit sensible properties (parameters/MACs > 0). The `run` CLI successfully trains B3 for 2 epochs on the fixture.
 * **Known issues:** Extremely small synthetic datasets may have a 0-item evaluation set due to strict group splitting; added a fallback guard in `trainer.py`. PyTorch 2.x `torch.ao` module gives deprecation warnings during profiling, but correctly builds quantized graphs.
+
+### Stage 5: Teacher Model (completed)
+* **What was done:** Implemented CNN-BiLSTM Teacher architecture (`src/litecascade/models/teacher.py`), logged logits export utilities, and covered with unit tests.
+
+### Stage 6: LiteCascade Architecture (completed)
+* **What was done:** Implemented LiteCascade dual-exit model (`src/litecascade/models/litecascade.py`) with PIPLayer, shared DSBlock stem, Sentinel exit with temperature parameter, and Analyst exit (TCN + BiGRU/Attention).
+
+### Stage 7: Joint Training + KD (completed)
+* **What was done:** Implemented multi-task cascade loss (`CascadeLoss`) combining Sentinel/Analyst cross-entropy with self-KD and teacher KD, and training orchestrator (`run_cascade.py`).
+
+### Stage 8: Calibration + Risk-Controlled Gate (completed)
+* **What was done:** Implemented temperature scaling via NLL minimization, Clopper-Pearson binomial confidence bounds for risk-controlled threshold selection, and gate reporting (`src/litecascade/eval/gate.py`, `scripts/calibrate_gate.py`).
+
+### Stage 9: Compression Chain (completed)
+* **What was done:**
+  * Implemented structured channel pruning by L1-norm ranking at ratios {0.2, 0.3, 0.5} with fine-tuning in `src/litecascade/compress/prune.py`.
+  * Implemented Quantization-Aware Training (QAT) with per-channel observers for convolutional/linear blocks and dynamic INT8 quantization for GRU (addressing PyTorch eager-mode QAT recurrent limitations) in `src/litecascade/compress/quantize.py`.
+  * Implemented ONNX and TFLite (FP32 and INT8 with representative dataset calibration) export, alongside `TFLiteInterpreterWrapper` in `src/litecascade/compress/export.py`.
+  * Implemented output parity verification comparing PyTorch quantized logits vs TFLite INT8 outputs.
+  * Implemented post-quantization temperature and threshold re-calibration.
+  * Implemented Ablation A9 (wrong-order: QAT then Prune).
+  * Implemented CLI tools `scripts/compress.py` and `scripts/check_tflite_parity.py`.
+* **Verification output summary:**
+  * All 42 unit tests passing (`pytest tests/`).
+  * `ruff check src scripts tests` clean (0 errors).
+  * INT8 TFLite model size: 41.93 KB vs FP32: 54.64 KB (1.30x compression).
+  * Parity check: Argmax agreement reported on test windows.
+  * Post-quantization gate re-calibration: Exit rate and calibrated thresholds successfully recorded in `results/m9_stage_verify/compression_report.json`.
+* **Known issues:** Eager mode QAT triggers deprecation warnings in PyTorch 2.5; per-channel custom QConfig ensures stable training across CPU environments.

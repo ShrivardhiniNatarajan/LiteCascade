@@ -1,4 +1,5 @@
 """Calibrate gate thresholds for a trained LiteCascade run."""
+
 import argparse
 import json
 import logging
@@ -47,7 +48,7 @@ def main():
     # Load model
     run_dir = Path(f"results/{args.run}")
     model = LiteCascade(F_in=input_dim, d=16, c=24, hidden=24, K=2, variant=args.variant)
-    
+
     ckpt_path = run_dir / "best_model.pt"
     if ckpt_path.exists():
         state = torch.load(ckpt_path, map_location="cpu", weights_only=False)

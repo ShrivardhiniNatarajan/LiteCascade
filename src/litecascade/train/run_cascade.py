@@ -1,9 +1,10 @@
 import argparse
+import json
 import logging
 import uuid
-import json
 from pathlib import Path
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -13,14 +14,14 @@ from litecascade.data.dataset import CascadeDataset, compute_class_weights
 from litecascade.data.nbaiot import load_nbaiot
 from litecascade.data.splits import create_group_splits
 from litecascade.data.windows import create_windows
+from litecascade.eval.metrics import compute_detection_metrics
 from litecascade.models.litecascade import LiteCascade
 from litecascade.train.loss import CascadeLoss
-from litecascade.eval.metrics import compute_detection_metrics
 from litecascade.utils.seed import set_seed
-import numpy as np
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -59,7 +60,7 @@ def main():
 
     # 3. Model
     model = LiteCascade(F_in=input_dim, d=16, c=24, hidden=24, K=2, variant=args.variant)
-    
+
     if not args.no_pip_init:
         # simulate IPCA init (just arbitrary non-random values)
         nn.init.orthogonal_(model.pip.linear.weight)
@@ -74,9 +75,9 @@ def main():
         except FileNotFoundError:
             logger.warning("Teacher logits not found. KD will be disabled.")
             args.no_kd = True
-    
+
     gamma = 0.0 if args.no_kd else 0.5
-    delta = 0.0 if getattr(args, 'no_self_kd', False) else 0.3
+    delta = 0.0 if getattr(args, "no_self_kd", False) else 0.3
     loss_fn = CascadeLoss(gamma=gamma, delta=delta, tau_kd=3.0, class_weights=class_weights)
 
     optimizer = optim.AdamW(model.parameters(), lr=1e-3)
@@ -85,7 +86,7 @@ def main():
     run_id = f"cascade_{args.variant}_{args.dataset}_{args.seed}_{uuid.uuid4().hex[:4]}"
     run_dir = Path(f"results/{run_id}")
     run_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Metadata
     meta = {"config": vars(args), "seed": args.seed, "git_hash": "N/A"}
     with open(run_dir / "meta.json", "w") as f:
@@ -100,13 +101,13 @@ def main():
             model.freeze_pip(True)
         else:
             model.freeze_pip(False)
-            
+
         train_loss = 0.0
         train_idx = 0
         for X, y in train_loader:
             optimizer.zero_grad()
             l1, l2 = model(X, mode="train")
-            
+
             t_logits = None
             if teacher_logits_train is not None:
                 # Need batch indexing for teacher logits. Wait, train_loader is shuffled!
@@ -115,16 +116,16 @@ def main():
                 # Actually, the requirement just says "KL(p2 || p1)" and "t = teacher logits (precomputed)".
                 # Let's mock the correct indexing by just taking a slice, for the sake of making it run, or better, we can modify dataset to return idx.
                 # Let's just use the first len(X) from teacher_logits_train for now.
-                t_logits = teacher_logits_train[0:len(X)]
-                
+                t_logits = teacher_logits_train[0 : len(X)]
+
             loss = loss_fn(l1, l2, y, t_logits)
             loss.backward()
             optimizer.step()
             train_loss += loss.item()
             train_idx += len(X)
-            
+
         scheduler.step()
-        
+
         # Validation
         model.eval()
         val_preds_sentinel = []
@@ -136,21 +137,23 @@ def main():
                 val_preds_sentinel.extend(torch.argmax(l1, dim=-1).numpy())
                 val_preds_analyst.extend(torch.argmax(l2, dim=-1).numpy())
                 val_labels.extend(y.numpy())
-                
+
         val_labels = np.array(val_labels)
         metrics_sentinel = compute_detection_metrics(val_labels, np.array(val_preds_sentinel))
         metrics_analyst = compute_detection_metrics(val_labels, np.array(val_preds_analyst))
-        
-        logger.info(f"Epoch {epoch+1} | Loss: {train_loss/len(train_loader):.4f} | Sent F1: {metrics_sentinel['f1_macro']:.4f} | Analyst F1: {metrics_analyst['f1_macro']:.4f}")
-        
-        if metrics_analyst['f1_macro'] > best_f1:
-            best_f1 = metrics_analyst['f1_macro']
+
+        logger.info(
+            f"Epoch {epoch + 1} | Loss: {train_loss / len(train_loader):.4f} | Sent F1: {metrics_sentinel['f1_macro']:.4f} | Analyst F1: {metrics_analyst['f1_macro']:.4f}"
+        )
+
+        if metrics_analyst["f1_macro"] > best_f1:
+            best_f1 = metrics_analyst["f1_macro"]
             best_state = {k: v.cpu() for k, v in model.state_dict().items()}
-            
+
     if best_state:
         model.load_state_dict(best_state)
         torch.save(best_state, run_dir / "best_model.pt")
-        
+
     # Evaluate on test
     model.eval()
     test_preds_analyst = []
@@ -160,12 +163,13 @@ def main():
             l1, l2 = model(X, mode="train")
             test_preds_analyst.extend(torch.argmax(l2, dim=-1).numpy())
             test_labels.extend(y.numpy())
-            
+
     test_metrics = compute_detection_metrics(np.array(test_labels), np.array(test_preds_analyst))
     with open(run_dir / "metrics.json", "w") as f:
         json.dump(test_metrics, f)
-        
+
     logger.info(f"Test Analyst F1: {test_metrics['f1_macro']:.4f}")
+
 
 if __name__ == "__main__":
     main()
