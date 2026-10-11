@@ -140,14 +140,23 @@ if page == "🔴 Live Monitor":
     col_stat, col_metric1, col_metric2, col_metric3, col_metric4 = st.columns([1.5, 1, 1, 1, 1])
 
     is_alert = last_event["is_alert"] if last_event else False
-    status_label = "🚨 INTRUSION ALERT" if is_alert else "🟢 SYSTEM NORMAL"
-    status_color = "red" if is_alert else "green"
+    if last_event and is_alert:
+        fam_disp = str(last_event.get("family", "Threat")).upper()
+        status_label = f"🚨 INTRUSION ALERT: {fam_disp}"
+        sub_text = f"Active IoT Malware Detected (Confidence: {last_event['confidence']*100:.1f}%)"
+        status_color = "#d32f2f"
+        bg_color = "#ffebee"
+    else:
+        status_label = "🟢 SYSTEM NORMAL"
+        sub_text = "Clean IoT Gateway Stream — No active intrusions"
+        status_color = "#2e7d32"
+        bg_color = "#e8f5e9"
 
     with col_stat:
         st.markdown(
-            f"<div style='background-color: {'#ffebee' if is_alert else '#e8f5e9'}; padding: 16px; border-radius: 8px; border-left: 6px solid {status_color}; text-align: center;'>"
-            f"<h2 style='color: {status_color}; margin: 0;'>{status_label}</h2>"
-            f"<small style='color: #666;'>Current Network State</small>"
+            f"<div style='background-color: {bg_color}; padding: 14px; border-radius: 8px; border-left: 6px solid {status_color}; text-align: center;'>"
+            f"<h2 style='color: {status_color}; margin: 0; font-size: 1.35rem;'>{status_label}</h2>"
+            f"<small style='color: #555;'>{sub_text}</small>"
             f"</div>",
             unsafe_allow_html=True,
         )
@@ -241,9 +250,31 @@ if page == "🔴 Live Monitor":
 
         # Recent Alerts / Events Table
         st.subheader("📋 Recent Traffic Events")
-        table_df = df_ev[["timestamp", "window_id", "prediction", "true_label", "confidence", "exit_used", "latency_ms", "family"]].iloc[::-1]
-        table_df["status"] = table_df["prediction"].apply(lambda p: "🚨 ALERT" if p == 1 else "🟢 NORMAL")
-        st.dataframe(table_df[["timestamp", "status", "family", "confidence", "exit_used", "latency_ms", "window_id"]], use_container_width=True, height=220)
+        table_df = df_ev[["timestamp", "window_id", "prediction", "true_label", "confidence", "exit_used", "latency_ms", "family"]].iloc[::-1].copy()
+
+        def get_verdict(row):
+            pred = row["prediction"]
+            truth = row["true_label"]
+            if pred == 1 and truth == 1:
+                return "✅ True Positive"
+            elif pred == 0 and truth == 0:
+                return "✅ True Negative"
+            elif pred == 1 and truth == 0:
+                return "⚠️ False Positive"
+            else:
+                return "❌ False Negative (Missed)"
+
+        table_df["Detection Verdict"] = table_df.apply(get_verdict, axis=1)
+        table_df["IDS Alert"] = table_df["prediction"].apply(lambda p: "🚨 ALERT" if p == 1 else "🟢 CLEAR")
+        table_df["Traffic Family"] = table_df["family"].apply(lambda f: f"🟢 {f.capitalize()}" if f.lower() == "benign" else f"🚨 {f.capitalize()}")
+        table_df["Confidence"] = table_df["confidence"].apply(lambda c: f"{c*100:.1f}%")
+        table_df["Latency"] = table_df["latency_ms"].apply(lambda lat: f"{lat:.2f} ms")
+        table_df["Exit Stage"] = table_df["exit_used"].apply(lambda e: "⚡ Sentinel (Early)" if e == "sentinel" else "🧠 Analyst (Full)")
+        table_df["Time"] = table_df["timestamp"]
+        table_df["Window ID"] = table_df["window_id"]
+
+        cols_to_show = ["Time", "Traffic Family", "IDS Alert", "Detection Verdict", "Confidence", "Exit Stage", "Latency", "Window ID"]
+        st.dataframe(table_df[cols_to_show], use_container_width=True, height=240)
 
 # =============================================================================
 # PAGE 2: EFFICIENCY

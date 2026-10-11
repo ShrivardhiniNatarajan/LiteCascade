@@ -32,6 +32,13 @@ def generate_synthetic_data(dataset_name: str, num_rows: int = 2000) -> pd.DataF
     df["label_binary"] = (df["label_family"] != "benign").astype(int)
     df["group"] = np.random.choice(groups, size=num_rows)
 
+    # Inject realistic network attack flow signatures
+    # (Elevated packet rates, byte lengths, and header characteristics for attacks)
+    for i, fam in enumerate(["mirai", "gafgyt", "tsunami"]):
+        mask = df["label_family"] == fam
+        df.loc[mask, f"feature_{2*i}"] += 3.5
+        df.loc[mask, f"feature_{2*i+1}"] += 3.0
+
     # Random timestamps over a 1 day period
     base_time = pd.Timestamp("2026-01-01")
     df["timestamp"] = base_time + pd.to_timedelta(np.random.randint(0, 86400, size=num_rows), unit="s")
