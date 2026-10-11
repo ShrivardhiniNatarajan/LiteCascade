@@ -18,10 +18,11 @@
 3. [Environment & Installation](#-environment--installation)
 4. [Dataset Setup](#-dataset-setup)
 5. [One-Command Reproduction](#-one-command-reproduction)
-6. [On-Device Hardware Benchmarks](#-on-device-hardware-benchmarks)
-7. [Limitations & Threats to Validity](#-limitations--threats-to-validity)
-8. [Project Roadmap & Completed Milestones](#-project-roadmap--completed-milestones)
-9. [License](#-license)
+6. [Interactive Demo Dashboard](#-interactive-demo-dashboard)
+7. [On-Device Hardware Benchmarks](#-on-device-hardware-benchmarks)
+8. [Limitations & Threats to Validity](#-limitations--threats-to-validity)
+9. [Project Roadmap & Completed Milestones](#-project-roadmap--completed-milestones)
+10. [License](#-license)
 
 ---
 
@@ -194,6 +195,59 @@ Each table and figure in the IEEE manuscript can be individually regenerated fro
 | **Table VI (Robustness / LOFO)**| `python scripts/reproduce.py --table 6` | `make table6` | `results/tables/robustness.{csv,tex}` |
 | **All 5 IEEE Figures (300 DPI)**| `python scripts/reproduce.py --figures` | `make figures` | `results/figures/*.png` |
 | **Traceability Verification** | `python scripts/reproduce.py --verify` | `make verify-numbers` | Console Pass Report |
+
+---
+
+## 🖥️ Interactive Demo Dashboard
+
+LiteCascade includes a multi-page interactive **Streamlit dashboard** for research presentations, defense/viva demonstrations, and visual inspection of live replayed IoT network traffic.
+
+> [!NOTE]
+> **Research Demonstration Only**: The dashboard streams recorded test windows from the evaluation benchmarks (or continuous-integration synthetic fixtures). It demonstrates real-time cascade inference, early exit, and alert behavior; it is not a production network IDS.
+
+### Launching the Dashboard
+
+```bash
+# Using Makefile:
+make demo
+
+# Using the cross-platform Python runner:
+python scripts/reproduce.py --demo
+
+# Or directly via Streamlit:
+streamlit run app/main.py
+```
+
+### Dashboard Pages & Visual Modules
+
+1. **🔴 Live Monitor**:
+   - **Status Indicator**: Flips dynamically between `🟢 SYSTEM NORMAL` and `🚨 INTRUSION ALERT`.
+   - **Timeline Plot**: Real-time Plotly scatter plot mapping confidence over time for benign vs. malicious traffic with ground-truth overlay.
+   - **Traffic Events Table**: Tabulates timestamps, prediction status, malware family, confidence, and path latencies.
+   - **Interactive Controls**: Play/pause, replay pacing (1x–100x), step controls, and synthetic attack injection (select family and duration).
+
+2. **⚡ Compute & Efficiency**:
+   - **Exit Rate Telemetry**: Tracks real-time percentage of traffic resolved early by the Sentinel detector ($\rho$).
+   - **Compute Reduction Formula**: Evaluates cumulative MAC savings vs. an always-full Analyst model via $E[C] = C_1 + (1-\rho)C_2$.
+   - **Latency Histogram**: Displays empirical p50 and p95 inference latency distributions.
+   - **Risk-Controlled $\epsilon$-Slider**: Visualizes the precomputed Clopper-Pearson exit curve $\rho(\epsilon)$ from `results/m8_gate/gate_report.json` without recomputing models on the fly.
+
+3. **📊 Baseline Evaluation**:
+   - Tabulates Table III comparative results across SOTA baselines B1–B8, Teacher, and LiteCascade.
+   - Generates interactive Pareto frontier scatter plots (Macro-F1 vs. MACs, Macro-F1 vs. INT8 Size).
+
+4. **🛡️ Adversarial Robustness**:
+   - Displays Table VI evaluation across 6 feature-space evasion perturbations (Gaussian jitter, timing jitter, packet-size padding).
+   - Highlights Leave-One-Family-Out (LOFO) zero-day generalization on held-out malware families.
+
+5. **📱 On-Device Deployments**:
+   - Summarizes physical Raspberry Pi 4 benchmarks (p50 latency: **0.091 ms**, energy: **117.0 $\mu\text{J}$**).
+   - Details microcontroller Flash (**41.93 KB**) and static Tensor Arena SRAM (**20.0 KB**) budgets for ESP32-S3 and ARM Cortex-M.
+
+6. **ℹ️ Architectural Overview**:
+   - Displays the dual-exit architectural flowchart and documents Section VII limitations honestly.
+
+*Preview screenshots of all 6 pages are saved in `docs/screenshots/`.*
 
 ---
 

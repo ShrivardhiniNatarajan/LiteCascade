@@ -91,11 +91,14 @@ def main() -> None:
     )
     parser.add_argument("--figures", action="store_true", help="Generate all 5 IEEE 300 DPI figures")
     parser.add_argument("--verify", action="store_true", help="Verify traceability (zero handwritten numbers)")
+    parser.add_argument("--demo", action="store_true", help="Launch interactive Streamlit demo dashboard")
     args = parser.parse_args()
 
     py = sys.executable
 
-    if args.table:
+    if args.demo:
+        subprocess.run([py, "-m", "streamlit", "run", "app/main.py"], check=True)
+    elif args.table:
         subprocess.run([py, "scripts/make_paper_tables.py", "--table", args.table], check=True)
     elif args.figures:
         subprocess.run([py, "scripts/make_paper_tables.py", "--figures"], check=True)

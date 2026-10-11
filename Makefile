@@ -1,7 +1,7 @@
 # LiteCascade Makefile
 # Supports cross-platform execution (Windows / Linux / macOS)
 
-.PHONY: help setup lint format test clean reproduce-fast reproduce-full table3 table4 table5 table6 figures stats verify-numbers
+.PHONY: help setup lint format test clean reproduce-fast reproduce-full table3 table4 table5 table6 figures stats verify-numbers demo
 
 PYTHON ?= python
 PIP ?= pip
@@ -54,6 +54,9 @@ stats:
 
 verify-numbers:
 	$(PYTHON) scripts/check_no_handwritten_numbers.py
+
+demo:
+	$(PYTHON) -m streamlit run app/main.py
 
 reproduce-fast:
 	@echo "=== [1/5] Generating Synthetic Data Fixtures ==="

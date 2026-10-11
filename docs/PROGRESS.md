@@ -263,3 +263,36 @@
   * Full test suite: **73 passed** in ~145s (`pytest -q`).
   * `ruff check src scripts tests` clean (0 errors).
 * **Known issues:** None.
+
+### Stage 16: Live Demo Dashboard (Streamlit) (completed)
+* **Date:** 2026-10-11
+* **What was done:**
+  * Implemented backend traffic replay engine `ReplayEngine` in `src/litecascade/deploy/replay.py`:
+    * Temporal streaming of preprocessed network windows at adjustable speed (1x, 10x, 100x).
+    * Dual-exit TFLite INT8 inference with calibrated temperature scaling ($T_1, T_2$) and risk-controlled thresholds $(\tau_b, \tau_m)$.
+    * Real-time attack injection capabilities (sampling windows for user-specified attack families and durations).
+    * Ring buffer event telemetry (sliding window of 500 events) tracking latency, MACs, exits, and confidence.
+    * CLI verification runner writing execution report to `results/demo_check.json`.
+  * Implemented interactive multi-page Streamlit dashboard in `app/main.py`:
+    * **Live Monitor:** Dynamic NORMAL/ALERT status box, Plotly time-series scatter plot of confidence and ground truth, recent traffic event table, playback controls, and attack injection panel.
+    * **Efficiency:** Real-time Sentinel exit rate $\rho$, cumulative compute savings formula $E[C] = C_1 + (1-\rho)C_2$, empirical speedup ($2.64\times$), latency histogram (p50/p95), footprint cards, and interactive precomputed $\epsilon$-slider.
+    * **Evaluation:** Table III comparative results, confusion matrix, and interactive Pareto frontiers.
+    * **Robustness:** Table VI adversarial evasion emulations and zero-day LOFO generalization.
+    * **On-Device:** Measured Raspberry Pi 4 benchmarks (p50: 0.091 ms, energy: 117.0 $\mu\text{J}$) and MCU sizing for ESP32-S3 and ARM Cortex-M.
+    * **About:** Flowchart diagram, methodology highlights, Section VII limitations, and prominent academic demonstration disclaimer.
+    * Prominent `SYNTHETIC DATA MODE` banner when operating on continuous integration fixtures.
+    * Headless test flag (`--headless-test`) for automated CI testing.
+  * Generated high-resolution dashboard preview screenshots in `docs/screenshots/` for all 6 pages via `scripts/make_screenshots.py`.
+  * Updated `Makefile` with `demo` target (`python -m streamlit run app/main.py`).
+  * Updated `scripts/reproduce.py` with `--demo` flag.
+  * Added unit test suites:
+    * `tests/test_replay.py`: Replay engine determinism, exit-rate consistency, attack injection, summary schema.
+    * `tests/test_app.py`: Streamlit `AppTest` execution, headless flag test, graceful missing-file error handling.
+* **Verification output summary:**
+  * Replay verification CLI (`python -m litecascade.deploy.replay --dataset fixture --seconds 20 --out results/demo_check.json`): successfully executed 678 test windows and exported summary report.
+  * Dashboard test suite (`pytest tests/test_replay.py tests/test_app.py -q`): 7 passed in 41.88s.
+  * Full test suite: **80 passed** in ~168s (`pytest -q`).
+  * `ruff check src scripts tests app` clean (0 errors).
+  * Traceability checker: 105/105 numbers verified traceable.
+* **Known issues:** None.
+
