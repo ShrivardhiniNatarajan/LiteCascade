@@ -148,7 +148,7 @@ def convert_qat_to_quantized(prepared_model: nn.Module, variant: str = "R") -> n
 def run_wrong_order_ablation(
     model: LiteCascade,
     train_loader: DataLoader,
-    val_loader: DataLoader,
+    val_loader: DataLoader | None = None,
     prune_ratio: float = 0.3,
     variant: str = "R",
 ) -> dict[str, Any]:

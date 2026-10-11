@@ -89,3 +89,28 @@
   * Parity check: Argmax agreement reported on test windows.
   * Post-quantization gate re-calibration: Exit rate and calibrated thresholds successfully recorded in `results/m9_stage_verify/compression_report.json`.
 * **Known issues:** Eager mode QAT triggers deprecation warnings in PyTorch 2.5; per-channel custom QConfig ensures stable training across CPU environments.
+
+### Stage 10: Ablations Ladder (completed)
+* **Date:** 2026-10-11
+* **What was done:**
+  * Created `configs/ablation.yaml` specifying seeds, hyperparameters, thresholds, and output directories.
+  * Implemented `scripts/run_ablation.py` orchestrating the 10-step ablation ladder across seeds:
+    * A0: Analyst only (no PIP init, no gate)
+    * A1: + PIP initialisation
+    * A2: + Sentinel with naive fixed-threshold gate (0.9)
+    * A3: + temperature scaling
+    * A4: + risk-controlled tau (Clopper-Pearson)
+    * A5: + distillation
+    * A6: + structured pruning
+    * A7: + INT8 QAT
+    * A8: + re-calibration after QAT
+    * A9: Wrong order (QAT -> prune)
+    * Support for Variant R vs Variant T comparisons.
+  * Implemented `scripts/aggregate_ablation.py` generating `results/tables/ablation.csv` and publication-ready LaTeX `results/tables/ablation.tex`, computing mean $\pm$ std across seeds for F1, $\rho$, Expected MACs, and Size (KB), with synthetic labeling for dry runs.
+  * Added unit tests in `tests/test_ablation.py` validating 10-row ladder execution, statistical aggregation, std population, and Variant T execution.
+* **Verification output summary:**
+  * Full test suite: **45 passed** in ~234s.
+  * `ruff check src scripts tests` clean (0 errors).
+  * Dry run execution: `python scripts/run_ablation.py --dataset fixture --seeds 2 --epochs 2` successfully executed all 10 steps across 2 seeds.
+  * Aggregation: `python scripts/aggregate_ablation.py` generated `results/tables/ablation.csv` (10 rows, all std columns populated, labeled synthetic) and `results/tables/ablation.tex`.
+* **Known issues:** None.

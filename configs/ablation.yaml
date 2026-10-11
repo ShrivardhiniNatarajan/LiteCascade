@@ -1,0 +1,15 @@
+# configs/ablation.yaml
+# Configuration for Stage 10 Ablation Ladder (Table IV)
+experiment_name: "ablation_ladder"
+dataset: "fixture"
+variant: "R"
+seeds: [42, 43, 44, 45, 46]
+epochs: 10
+prune_ratio: 0.3
+epsilon: 0.005
+alpha: 0.05
+naive_threshold: 0.9
+gamma_kd: 0.5
+delta_kd: 0.3
+output_dir: "results/ablation"
+tables_dir: "results/tables"

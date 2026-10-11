@@ -30,17 +30,22 @@ def get_prunable_conv_layers(model: nn.Module) -> list[nn.Conv1d]:
     return conv_layers
 
 
-def apply_structured_pruning(model: LiteCascade, ratio: float = 0.3) -> LiteCascade:
+def apply_structured_pruning(
+    model: LiteCascade, ratio: float = 0.3, prune_ratio: float | None = None
+) -> LiteCascade:
     """
     Applies structured channel pruning by L1-norm ranking to convolutional layers.
 
     Args:
         model: LiteCascade instance
         ratio: Pruning ratio in {0.2, 0.3, 0.5} (or float in [0.0, 1.0))
+        prune_ratio: Alias for ratio
 
     Returns:
         Pruned model with masks applied and removed (permanent zeroing).
     """
+    if prune_ratio is not None:
+        ratio = prune_ratio
     if not (0.0 <= ratio < 1.0):
         raise ValueError(f"Pruning ratio must be in [0.0, 1.0), got {ratio}")
 
