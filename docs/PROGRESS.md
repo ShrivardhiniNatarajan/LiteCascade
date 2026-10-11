@@ -234,3 +234,32 @@
   * `python scripts/check_no_handwritten_numbers.py`: passed 105/105 numbers verified traceable to `results/`.
   * `Get-Content docs/PAPER_FILL_GUIDE.md -Head 60`: displayed verified mapping header.
 * **Known issues:** None.
+
+### Stage 15: Reproducibility and Release Package (completed)
+* **Date:** 2026-10-11
+* **What was done:**
+  * Updated `README.md`:
+    * Comprehensive publication-ready documentation, architecture ASCII diagram, empirical results summary (Tables III-VI).
+    * Step-by-step setup and environment installation instructions.
+    * One-command reproduction guide per paper table (`make table3` ... `make table6`).
+    * On-device hardware specifications (Raspberry Pi 4 XNNPACK, ESP32-S3 / ARM Cortex-M TFLM Tensor Arena).
+    * Explicit threats to validity and limitations from Section VII of the IEEE manuscript.
+    * Formal citation and MIT license information.
+  * Updated `Makefile`:
+    * Cross-platform variable definitions (`PYTHON ?= python`).
+    * Targets for fast reproduction (`make reproduce-fast`, <10 min on fixtures) and full reproduction (`make reproduce-full`).
+    * Direct targets for all paper tables (`make table3`, `make table4`, `make table5`, `make table6`, `make figures`, `make stats`, `make verify-numbers`).
+  * Created `scripts/reproduce.py`:
+    * Pure Python cross-platform runner supporting `--mode {fast,full}`, `--table {3,4,5,6}`, `--figures`, and `--verify`.
+    * Tested and verified: fast reproduction executes in ~58 seconds end-to-end on synthetic fixtures.
+  * Added `LICENSE`: standard MIT License.
+  * Added `CITATION.cff`: Citation File Format (v1.2.0) with complete metadata and preferred IEEE journal citation.
+  * Added `docs/MODEL_CARD.md`: Mitchell et al. standard model card detailing architecture, intended use, out-of-scope uses, datasets, quantitative metrics, hardware profiles, ethical considerations, and caveats.
+  * Locked dependencies in `requirements-lock.txt` using `pip freeze` encoded in UTF-8.
+  * Added unit test suite in `tests/test_reproducibility.py` validating `LICENSE`, `CITATION.cff` YAML schema, `MODEL_CARD.md` completeness, `requirements-lock.txt`, `Makefile` targets, and `reproduce.py --help`.
+* **Verification output summary:**
+  * Fast reproduction pipeline (`python scripts/reproduce.py --mode fast`): completed in 58.23s with 100% pass across all 5 stages.
+  * Unit tests (`pytest tests/test_reproducibility.py`): 6 passed in 0.71s.
+  * Full test suite: **73 passed** in ~145s (`pytest -q`).
+  * `ruff check src scripts tests` clean (0 errors).
+* **Known issues:** None.

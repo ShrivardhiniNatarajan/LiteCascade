@@ -9,6 +9,7 @@ Strictly preserves Rule 2 & Rule 5: Never invents, estimates, or hard-codes metr
 
 from __future__ import annotations
 
+import argparse
 import json
 import logging
 import sys
@@ -423,31 +424,57 @@ def run_statistical_comparison() -> dict[str, Any]:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="LiteCascade Paper Tables & Figures Aggregator")
+    parser.add_argument(
+        "--table",
+        type=str,
+        default="all",
+        choices=["all", "3", "4", "5", "6", "main", "ablation", "device", "robustness"],
+        help="Select specific table to generate (3/main, 4/ablation, 5/device, 6/robustness, or all)",
+    )
+    parser.add_argument("--figures", action="store_true", help="Generate 300 DPI figures")
+    parser.add_argument("--stats", action="store_true", help="Run Wilcoxon statistical tests")
+    args = parser.parse_args()
+
     print("=" * 75)
-    print(" LiteCascade Paper Tables & Figures Aggregator (Stage 14)")
+    print(" LiteCascade Paper Tables & Figures Aggregator (Stage 14/15)")
     print("=" * 75)
 
-    # 1. Tables III–VI
-    generate_table3_main()
-    generate_table4_ablation()
-    generate_table5_device()
-    generate_table6_robustness()
+    tbl = args.table.lower()
+    run_all = tbl == "all" and not args.figures and not args.stats
 
-    # 2. Figures
-    generate_paper_figures()
+    if run_all or tbl in ["3", "main"]:
+        generate_table3_main()
+    if run_all or tbl in ["4", "ablation"]:
+        generate_table4_ablation()
+    if run_all or tbl in ["5", "device"]:
+        generate_table5_device()
+    if run_all or tbl in ["6", "robustness"]:
+        generate_table6_robustness()
 
-    # 3. Statistical Testing
-    run_statistical_comparison()
+    if run_all or args.figures:
+        generate_paper_figures()
+
+    if run_all or args.stats:
+        run_statistical_comparison()
 
     print("\n[SUCCESS] Aggregated Tables:")
-    print(f"  Table III (Main):        {TABLES_DIR / 'main.csv'}")
-    print(f"  Table IV (Ablations):    {TABLES_DIR / 'ablation.csv'}")
-    print(f"  Table V (Device):        {TABLES_DIR / 'device.csv'}")
-    print(f"  Table VI (Robustness):    {TABLES_DIR / 'robustness.csv'}")
-    print("\n[SUCCESS] Generated Figures at 300 DPI:")
-    for fig_file in FIGURES_DIR.glob("*.png"):
-        print(f"  Figure: {fig_file.name}")
-    print(f"\n[SUCCESS] Statistical Test JSON: {TABLES_DIR / 'statistical_tests.json'}")
+    if tbl in ["all", "3", "main"]:
+        print(f"  Table III (Main):        {TABLES_DIR / 'main.csv'}")
+    if tbl in ["all", "4", "ablation"]:
+        print(f"  Table IV (Ablations):    {TABLES_DIR / 'ablation.csv'}")
+    if tbl in ["all", "5", "device"]:
+        print(f"  Table V (Device):        {TABLES_DIR / 'device.csv'}")
+    if tbl in ["all", "6", "robustness"]:
+        print(f"  Table VI (Robustness):    {TABLES_DIR / 'robustness.csv'}")
+
+    if run_all or args.figures:
+        print("\n[SUCCESS] Generated Figures at 300 DPI:")
+        for fig_file in sorted(FIGURES_DIR.glob("*.png")):
+            print(f"  Figure: {fig_file.name}")
+
+    if run_all or args.stats:
+        print(f"\n[SUCCESS] Statistical Test JSON: {TABLES_DIR / 'statistical_tests.json'}")
     print("=" * 75)
 
 

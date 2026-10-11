@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this software, models, or benchmark suite in your research, please cite it as below."
+title: "LiteCascade: A Lightweight Early-Exit Cascade for IoT Malware and Intrusion Detection"
+abstract: "LiteCascade is a resource-efficient early-exit neural cascade for edge IoT network intrusion and malware detection. It couples a sub-10K parameter INT8 Sentinel detector with a full-capacity Analyst model via risk-controlled temperature-scaled confidence thresholds, achieving 2.64x empirical speedup and 97.4% Macro-F1 on microcontroller and edge gateway platforms."
+version: 1.0.0
+date-released: "2026-10-11"
+license: MIT
+repository-code: "https://github.com/ShrivardhiniNatarajan/LiteCascade"
+keywords:
+  - "iot-security"
+  - "network-intrusion-detection"
+  - "early-exit"
+  - "neural-cascades"
+  - "edge-ai"
+  - "tflite-micro"
+  - "quantization"
+  - "tinyml"
+authors:
+  - family-names: "Natarajan"
+    given-names: "Shrivardhini"
+preferred-citation:
+  type: article
+  authors:
+    - family-names: "Natarajan"
+      given-names: "Shrivardhini"
+  title: "LiteCascade: A Lightweight Early-Exit Cascade for IoT Malware and Intrusion Detection"
+  year: 2026
+  journal: "IEEE Internet of Things Journal"
+  note: "Under review"
