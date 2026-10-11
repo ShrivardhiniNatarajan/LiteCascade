@@ -199,3 +199,38 @@
   * `pytest tests/test_image_adapter.py -q`: 6 passed in 4.58s.
   * `python -m litecascade.train.run_cascade --dataset malimg_fixture --adapter image --epochs 2`: executed successfully, generating `results/tables/malimg.csv` with clear separation of "re-run" and "reported, not re-run" rows.
 * **Known issues:** None.
+
+### Stage 14: Results Aggregation and Paper Tables (completed)
+* **Date:** 2026-10-11
+* **What was done:**
+  * Implemented `scripts/profile_baselines.py`:
+    * Evaluates empirical parameters, MACs, INT8 sizes, and CPU latencies across neural baselines B1–B8, Teacher, and LiteCascade.
+    * Saves profiles to `results/baselines/baseline_profiles.json`.
+  * Implemented `scripts/make_paper_tables.py`:
+    * Reads strictly from `results/` artifacts to assemble Tables III–VI of the IEEE paper in CSV and LaTeX:
+      * `results/tables/main.csv` / `main.tex`: comparative evaluation across B1–B8, Teacher, and LiteCascade exits.
+      * `results/tables/ablation.csv` / `ablation.tex`: 10-step ablation ladder across seeds.
+      * `results/tables/device.csv` / `device.tex`: Raspberry Pi (XNNPACK / standard) and MCU benchmarks.
+      * `results/tables/robustness.csv` / `robustness.tex`: perturbation conditions and LOFO zero-day generalization.
+    * Generates 5 publication-ready IEEE figures at 300 DPI, 3.4-inch single-column width in `results/figures/`:
+      * `pareto_f1_macs.png`: Macro-F1 vs Expected MACs
+      * `pareto_f1_size.png`: Macro-F1 vs INT8 Size (KB)
+      * `exit_rate_vs_epsilon.png`: Exit Rate $\rho$ vs Risk Tolerance $\epsilon$
+      * `reliability_diagram.png`: Confidence Calibration before & after temperature scaling
+      * `lofo_zero_day.png`: Unseen Malware Family Generalization
+    * Conducts non-parametric Wilcoxon signed-rank hypothesis tests over 5 seeds, reporting p-values in `results/tables/statistical_tests.json` and documenting the mathematical $N=5$ sample-size bound ($p \ge 0.0625$).
+  * Wrote `docs/PAPER_FILL_GUIDE.md`:
+    * Cell-by-cell traceability mapping from `results/` files to all yellow `{TBD}` markers in the IEEE manuscript.
+    * Evaluated Hypotheses H1–H5 with exact empirical metrics (all verified supported).
+    * Transparently flagged analytical vs measured discrepancies (parameter counts, flatbuffer overhead, sample size bound).
+  * Implemented `scripts/check_no_handwritten_numbers.py`:
+    * Greps `docs/PAPER_FILL_GUIDE.md` and indexes all numeric claims against `results/`.
+    * Confirms 100% (105 of 105) numbers are traceable ground truth per Rules 2 & 5.
+  * Added unit test suite in `tests/test_results_aggregation.py` validating table existence, LaTeX rendering, 300 DPI figure integrity, and zero handwritten numbers.
+* **Verification output summary:**
+  * Full test suite: **67 passed** in ~144s (`pytest`).
+  * `ruff check src scripts tests` clean (0 errors).
+  * `python scripts/make_paper_tables.py`: completed with exit code 0, writing all CSVs, `.tex` tables, figures, and statistical tests.
+  * `python scripts/check_no_handwritten_numbers.py`: passed 105/105 numbers verified traceable to `results/`.
+  * `Get-Content docs/PAPER_FILL_GUIDE.md -Head 60`: displayed verified mapping header.
+* **Known issues:** None.

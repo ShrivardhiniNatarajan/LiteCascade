@@ -1,5 +1,5 @@
 import numpy as np
-import pandas as pd
+
 
 def create_windows(df, feature_cols, T=10, stride=1):
     X = []
