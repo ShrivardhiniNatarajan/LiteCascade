@@ -36,9 +36,7 @@ class B2_Trees:
         if model_type == "rf":
             self.model = RandomForestClassifier(n_estimators=100, random_state=random_state, n_jobs=-1)
         else:
-            self.model = xgb.XGBClassifier(
-                n_estimators=100, random_state=random_state, use_label_encoder=False, eval_metric="logloss"
-            )
+            self.model = xgb.XGBClassifier(n_estimators=100, random_state=random_state, n_jobs=-1)
 
     def fit(self, X: Any, y: Any):
         self.model.fit(X, y)
@@ -160,3 +158,77 @@ class B8_Transformer(nn.Module):
         # Use mean pooling over time
         x = x.mean(dim=1)
         return self.fc(x)
+
+
+# ==========================================
+# B9: BiGRU (recurrent, fewer gates than LSTM)
+# ==========================================
+class B9_BiGRU(nn.Module):
+    def __init__(self, input_dim: int, hidden_dim: int = 48, num_classes: int = 2):
+        super().__init__()
+        self.gru = nn.GRU(input_size=input_dim, hidden_size=hidden_dim, batch_first=True, bidirectional=True)
+        self.fc = nn.Linear(hidden_dim * 2, num_classes)
+
+    def forward(self, x: torch.Tensor):
+        out, _ = self.gru(x)
+        return self.fc(out.mean(dim=1))
+
+
+# ==========================================
+# B10: Temporal Convolutional Network (Bai et al., 2018)
+# ==========================================
+class _TCNBlock(nn.Module):
+    def __init__(self, channels: int, dilation: int, dropout: float = 0.1):
+        super().__init__()
+        self.pad = (3 - 1) * dilation  # causal: pad left only
+        self.conv1 = nn.Conv1d(channels, channels, 3, dilation=dilation)
+        self.conv2 = nn.Conv1d(channels, channels, 3, dilation=dilation)
+        self.drop = nn.Dropout(dropout)
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        y = self.drop(self.relu(self.conv1(nn.functional.pad(x, (self.pad, 0)))))
+        y = self.drop(self.relu(self.conv2(nn.functional.pad(y, (self.pad, 0)))))
+        return self.relu(x + y)
+
+
+class B10_TCN(nn.Module):
+    def __init__(self, input_dim: int, hidden_dim: int = 32, num_classes: int = 2):
+        super().__init__()
+        self.inp = nn.Conv1d(input_dim, hidden_dim, 1)
+        self.blocks = nn.Sequential(*[_TCNBlock(hidden_dim, d) for d in (1, 2, 4)])
+        self.fc = nn.Linear(hidden_dim, num_classes)
+
+    def forward(self, x: torch.Tensor):
+        h = self.blocks(self.inp(x.transpose(1, 2)))
+        return self.fc(h[:, :, -1])  # causal receptive field covers the whole window at the last step
+
+
+# ==========================================
+# B11: ResNet-1D (two residual conv stages + GAP)
+# ==========================================
+class _ResBlock1D(nn.Module):
+    def __init__(self, cin: int, cout: int):
+        super().__init__()
+        self.c1 = nn.Conv1d(cin, cout, 3, padding=1, bias=False)
+        self.b1 = nn.BatchNorm1d(cout)
+        self.c2 = nn.Conv1d(cout, cout, 3, padding=1, bias=False)
+        self.b2 = nn.BatchNorm1d(cout)
+        self.skip = nn.Conv1d(cin, cout, 1, bias=False) if cin != cout else nn.Identity()
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        y = self.relu(self.b1(self.c1(x)))
+        return self.relu(self.b2(self.c2(y)) + self.skip(x))
+
+
+class B11_ResNet1D(nn.Module):
+    def __init__(self, input_dim: int, hidden_dim: int = 32, num_classes: int = 2):
+        super().__init__()
+        self.stage1 = _ResBlock1D(input_dim, hidden_dim)
+        self.stage2 = _ResBlock1D(hidden_dim, hidden_dim * 2)
+        self.fc = nn.Linear(hidden_dim * 2, num_classes)
+
+    def forward(self, x: torch.Tensor):
+        h = self.stage2(self.stage1(x.transpose(1, 2)))
+        return self.fc(h.mean(dim=-1))

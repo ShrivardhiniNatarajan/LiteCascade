@@ -1,64 +1,39 @@
-"""Calibrate gate thresholds for a trained LiteCascade run."""
+"""Re-calibrate the gate of an existing bundle (e.g. with a different epsilon / alpha / target FPR).
+
+python scripts/calibrate_gate.py --bundle artifacts/fixture_R_int8 --epsilon 0.01 --alpha 0.05 [--write]
+"""
+
 import argparse
 import json
-import logging
-from pathlib import Path
 
-import torch
-from torch.utils.data import DataLoader
-
-from litecascade.data.dataset import CascadeDataset
-from litecascade.data.nbaiot import load_nbaiot
-from litecascade.data.splits import create_group_splits
-from litecascade.data.windows import create_windows
-from litecascade.eval.gate import calibrate_and_report
-from litecascade.models.litecascade import LiteCascade
-from litecascade.utils.seed import set_seed
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from litecascade.data.pipeline import prepare_data
+from litecascade.deploy.bundle import Bundle
+from litecascade.train.cascade_trainer import calibrate_model, evaluate_model
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--run", type=str, required=True, help="Run ID")
-    parser.add_argument("--epsilon", type=float, default=0.005)
-    parser.add_argument("--dataset", type=str, default="fixture")
-    parser.add_argument("--variant", type=str, default="R")
-    args = parser.parse_args()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--bundle", required=True)
+    ap.add_argument("--epsilon", type=float, default=0.005)
+    ap.add_argument("--alpha", type=float, default=0.05)
+    ap.add_argument("--target-fpr", type=float, default=0.01)
+    ap.add_argument("--verify-alerts", action="store_true")
+    ap.add_argument("--data-root", default=None)
+    ap.add_argument("--seed", type=int, default=42, help="must match the seed used for training (same splits)")
+    ap.add_argument("--write", action="store_true", help="store the new gate in the bundle")
+    args = ap.parse_args()
 
-    set_seed(42)
-
-    df = load_nbaiot(use_synthetic=(args.dataset == "fixture"))
-    splits = create_group_splits(df, args.dataset, seed=42)
-
-    feature_cols = [c for c in df.columns if c not in ["label_binary", "label_family", "group", "timestamp", "is_synthetic"]]
-    input_dim = len(feature_cols)
-
-    X_calib, y_calib = create_windows(df.loc[splits["calib"]], feature_cols, T=10)
-    X_test, y_test = create_windows(df.loc[splits["test"]], feature_cols, T=10)
-
-    calib_ds = CascadeDataset(X_calib, y_calib)
-    test_ds = CascadeDataset(X_test, y_test)
-
-    calib_loader = DataLoader(calib_ds, batch_size=32)
-    test_loader = DataLoader(test_ds, batch_size=32)
-
-    # Load model
-    run_dir = Path(f"results/{args.run}")
-    model = LiteCascade(F_in=input_dim, d=16, c=24, hidden=24, K=2, variant=args.variant)
-    
-    ckpt_path = run_dir / "best_model.pt"
-    if ckpt_path.exists():
-        state = torch.load(ckpt_path, map_location="cpu", weights_only=False)
-        model.load_state_dict(state)
-        logger.info(f"Loaded checkpoint from {ckpt_path}")
-    else:
-        logger.warning(f"No checkpoint found at {ckpt_path}, using random weights")
-
-    report = calibrate_and_report(model, calib_loader, test_loader, args.run, epsilon=args.epsilon)
-
-    print(json.dumps(report, indent=2))
+    b = Bundle(args.bundle)
+    data = prepare_data(b.meta["dataset"], root=args.data_root, T=b.window, seed=args.seed, task=b.meta["task"])
+    gate = calibrate_model(
+        b.model, data, epsilon=args.epsilon, alpha=args.alpha, target_fpr=args.target_fpr, verify_alerts=args.verify_alerts
+    )
+    rep = evaluate_model(b.model, data, gate)
+    print(json.dumps({"gate": gate, "test": {k: rep[k] for k in ("rho_raw", "exit_induced_miss_rate", "cascade")}}, indent=2))
+    if args.write:
+        b.meta["gate"] = gate
+        (b.path / "bundle.json").write_text(json.dumps(b.meta, indent=2, default=float))
+        print(f"Updated {b.path / 'bundle.json'}")
 
 
 if __name__ == "__main__":

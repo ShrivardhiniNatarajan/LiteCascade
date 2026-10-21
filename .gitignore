@@ -5,18 +5,18 @@ __pycache__/
 *.so
 .Python
 env/
-build/
+/build/
 develop-eggs/
-dist/
-downloads/
-eggs/
+/dist/
+/downloads/
+/eggs/
 .eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
+/lib/
+/lib64/
+/parts/
+/sdist/
+/var/
+/wheels/
 share/python-wheels/
 *.egg-info/
 .installed.cfg
@@ -32,9 +32,9 @@ env.bak/
 venv.bak/
 
 # Project specifics (NON-NEGOTIABLE RULES)
-data/
-checkpoints/
-results/
+/data/
+/checkpoints/
+/results/
 *.tflite
 *.pt
 *.pth
@@ -53,3 +53,19 @@ coverage.xml
 htmlcov/
 .coverage
 .coverage.*
+
+# Dashboard frontend
+dashboard/node_modules/
+*.log
+
+# Paper build tooling
+paper/node_modules/
+
+# Trained model bundles (weights are *.pt; regenerate with scripts/run_demo.py and train.run --model dl --bundles artifacts)
+/artifacts/
+
+# Local tool configuration
+.claude/
+
+# Office lock files
+~$*

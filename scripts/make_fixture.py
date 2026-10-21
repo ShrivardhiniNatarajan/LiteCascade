@@ -1,58 +1,20 @@
-from pathlib import Path
+"""Write the SYNTHETIC fixture (N-BaIoT / CICIoT2023 / IoT-23 native layouts) to data/fixture/.
 
-import numpy as np
-import pandas as pd
+python scripts/make_fixture.py [--out data/fixture]
+"""
 
-from litecascade.utils.seed import set_seed
+import argparse
 
-
-def generate_synthetic_data(dataset_name: str, num_rows: int = 2000) -> pd.DataFrame:
-    """Generate a small synthetic dataset for testing."""
-    set_seed(42)
-
-    # 4 families, 3 groups
-    families = ["benign", "mirai", "gafgyt", "tsunami"]
-    groups = ["device_A", "device_B", "device_C"]
-
-    # Generate 10 continuous features
-    features = {f"feature_{i}": np.random.randn(num_rows) for i in range(10)}
-
-    # Add random duplicates, inf, NaN to test cleaning
-    # (Just a few to trigger the cleaning logic in EDA/Loaders)
-    features["feature_0"][10:15] = np.inf
-    features["feature_1"][20:25] = np.nan
-
-    df = pd.DataFrame(features)
-
-    # Add constant column
-    df["constant_feature"] = 1.0
-
-    # Labels and metadata
-    df["label_family"] = np.random.choice(families, size=num_rows)
-    df["label_binary"] = (df["label_family"] != "benign").astype(int)
-    df["group"] = np.random.choice(groups, size=num_rows)
-
-    # Random timestamps over a 1 day period
-    base_time = pd.Timestamp("2026-01-01")
-    df["timestamp"] = base_time + pd.to_timedelta(np.random.randint(0, 86400, size=num_rows), unit="s")
-
-    df["is_synthetic"] = True
-
-    # Add a few explicit duplicates
-    df = pd.concat([df, df.iloc[:10]], ignore_index=True)
-
-    return df
+from litecascade.data.synthetic import DEFAULT_FIXTURE_DIR, write_fixture
 
 
 def main():
-    output_dir = Path("data/processed")
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    for dataset in ["nbaiot", "ciciot2023", "iot23"]:
-        df = generate_synthetic_data(dataset)
-        out_path = output_dir / f"synthetic_{dataset}.csv"
-        df.to_csv(out_path, index=False)
-        print(f"Generated {out_path} ({len(df)} rows)")
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--out", default=str(DEFAULT_FIXTURE_DIR))
+    out = write_fixture(ap.parse_args().out)
+    for p in sorted(out.rglob("*")):
+        if p.is_file():
+            print(p)
 
 
 if __name__ == "__main__":

@@ -146,7 +146,7 @@ class UnifiedTrainer:
 
         y_true = np.array(all_labels)
         y_pred = np.array(all_preds)
-        
+
         if len(y_true) == 0:
             logger.warning("Empty evaluation set.")
             return {"f1_macro": 0.0, "accuracy": 0.0, "precision": 0.0, "recall_malicious": 0.0, "fpr": 0.0, "mcc": 0.0}

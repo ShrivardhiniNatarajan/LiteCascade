@@ -5,34 +5,39 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "litecascade"
 version = "0.1.0"
-description = "Lightweight, early-exit cascade for IoT malware/intrusion detection (PyTorch -> TFLite INT8)"
+description = "Lightweight early-exit cascade for IoT malware/intrusion detection (PyTorch, CPU, INT8)"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "torch",
-    "torchvision",
+    "torch>=2.1",
     "numpy",
     "pandas",
+    "scipy",
     "scikit-learn",
+    "xgboost",
+    "joblib",
     "pyyaml",
-    "tqdm",
     "matplotlib",
-    "onnx",
-    "onnxruntime",
-    "tensorflow",
     "psutil",
-    "fvcore"
+    "fvcore",
+    "fastapi>=0.115",
+    "uvicorn",
+    "python-multipart",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "ruff"
+    "ruff",
+    "httpx"
 ]
 
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["litecascade*"]
+
+[tool.setuptools.package-data]
+litecascade = ["web/dashboard_dist/*", "web/dashboard_dist/assets/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -44,4 +49,5 @@ target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W", "UP", "N"]
-ignore = []
+# ML / math notation (T, F, X, K, B1_MLP ...) is intentional
+ignore = ["N801", "N802", "N803", "N806", "N812"]

@@ -16,7 +16,9 @@ def run_eda(dataset_name: str, df: pd.DataFrame, out_dir: Path):
 
     # 1. Feature counts & shapes
     row_count, col_count = df.shape
-    feature_cols = [c for c in df.columns if c not in ["label_binary", "label_family", "group", "timestamp", "is_synthetic"]]
+    from litecascade.data.clean import feature_columns
+
+    feature_cols = feature_columns(df)
 
     # 2. Missing, Inf, Duplicates
     num_df = df.select_dtypes(include=[np.number])
@@ -55,7 +57,7 @@ def run_eda(dataset_name: str, df: pd.DataFrame, out_dir: Path):
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
     # Plot 1: Binary class
-    pd.Series(binary_dist).plot(kind="bar", ax=axes[0], color=["blue", "red"])
+    pd.Series(binary_dist).plot(kind="bar", ax=axes[0], color=["#2a78d6", "#e34948"])
     axes[0].set_title("Binary Class Distribution")
     axes[0].set_ylabel("Count")
 
@@ -77,19 +79,23 @@ def run_eda(dataset_name: str, df: pd.DataFrame, out_dir: Path):
 
 
 def main():
+    import argparse
+
+    from litecascade.data.pipeline import load_dataset
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--datasets", nargs="+", default=["fixture", "fixture-ciciot2023", "fixture-iot23"])
+    ap.add_argument("--data-root", default=None)
+    ap.add_argument("--max-rows-per-file", type=int, default=None)
+    args = ap.parse_args()
     out_dir = Path("results/eda")
     out_dir.mkdir(parents=True, exist_ok=True)
-
-    data_dir = Path("data/processed")
-    datasets = ["nbaiot", "ciciot2023", "iot23"]
-
-    for ds in datasets:
-        file_path = data_dir / f"synthetic_{ds}.csv"
-        if not file_path.exists():
-            logger.warning(f"File {file_path} not found. Skipping EDA for {ds}.")
+    for ds in args.datasets:
+        try:
+            df = load_dataset(ds, root=args.data_root, max_rows_per_file=args.max_rows_per_file)
+        except FileNotFoundError as e:
+            logger.warning(f"Skipping {ds}: {e}")
             continue
-
-        df = pd.read_csv(file_path)
         run_eda(ds, df, out_dir)
 
 

@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/components/pipeline.tsx","./src/components/scorestream.tsx","./src/components/ui.tsx","./src/lib/api.ts","./src/lib/live.tsx","./src/pages/analyze.tsx","./src/pages/architecture.tsx","./src/pages/arena.tsx","./src/pages/benchmarks.tsx","./src/pages/docs.tsx","./src/pages/gatelab.tsx","./src/pages/live.tsx"],"version":"5.7.2"}

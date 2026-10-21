@@ -2,10 +2,24 @@ import pytest
 import torch
 
 from litecascade.eval.profiler import profile_model
-from litecascade.models.baselines import B1_MLP, B3_LSTM, B7_DSCNN, B4_BiLSTM, B5_WangBiLSTM, B6_CNN_BiLSTM, B8_Transformer
+from litecascade.models.baselines import (
+    B1_MLP,
+    B3_LSTM,
+    B7_DSCNN,
+    B10_TCN,
+    B4_BiLSTM,
+    B5_WangBiLSTM,
+    B6_CNN_BiLSTM,
+    B8_Transformer,
+    B9_BiGRU,
+    B11_ResNet1D,
+)
 
 
-@pytest.mark.parametrize("model_class", [B1_MLP, B3_LSTM, B4_BiLSTM, B5_WangBiLSTM, B6_CNN_BiLSTM, B7_DSCNN, B8_Transformer])
+@pytest.mark.parametrize(
+    "model_class",
+    [B1_MLP, B3_LSTM, B4_BiLSTM, B5_WangBiLSTM, B6_CNN_BiLSTM, B7_DSCNN, B8_Transformer, B9_BiGRU, B10_TCN, B11_ResNet1D],
+)
 def test_baselines_forward_and_profile(model_class):
     B = 2
     T = 10

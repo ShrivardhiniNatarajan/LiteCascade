@@ -1,8 +1,33 @@
+"""Gate calibration and risk-controlled thresholds for LiteCascade (paper Sec. IV.E, eqs. 2-4).
+
+Temperature scaling (Guo et al., 2017): T1 (Sentinel) and T2 (Analyst) minimise NLL on the
+calibration split; T > 0 is enforced by optimising log T, so argmax is unchanged.
+
+tau_b (eq. 4): an *exit-induced miss* is a malicious calibration window that exits benign at the Sentinel
+while the Analyst would have flagged it (Analyst argmax != 0). With m(tau) such windows among N_m
+malicious calibration windows
+
+    tau_b = min{ tau : U_CP(m(tau), N_m; alpha) <= epsilon }
+
+m(tau) is non-increasing in tau, so the admissible set is an interval [tau_b, inf). Choosing its
+smallest element equals fixed-sequence testing of H_tau: risk(tau) > epsilon from tau = inf downwards,
+stopping at the first non-rejection, which controls the family-wise error at alpha without a multiplicity
+correction. Hence, under exchangeability of calibration and test windows, with probability >= 1 - alpha
+over the calibration draw the exit-induced miss rate on test data is <= epsilon.
+
+Implementation detail: probabilities are computed in float32 exactly as at inference time and thresholds
+are placed at float32 ``nextafter`` of a calibration score, so ties cannot leak extra exits. If even
+m = 0 violates the bound (N_m < ln(alpha)/ln(1-epsilon), ~598 for eps=0.005, alpha=0.05) the
+benign exit is disabled (tau_b = NEVER) and the result is flagged infeasible.
+
+tau_m: smallest threshold whose empirical Sentinel false-alarm exit rate on benign calibration windows
+is <= target_fpr. This is an empirical choice WITHOUT a statistical guarantee; ``verify_alerts=True``
+(tau_m = NEVER) sends every alert to the Analyst instead.
 """
-Gate calibration and risk-controlled thresholds for LiteCascade.
-"""
+
 import json
 import logging
+import math
 from pathlib import Path
 
 import numpy as np
@@ -10,319 +35,298 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from scipy.stats import beta as beta_dist
-from scipy.optimize import minimize_scalar
 
-logging.basicConfig(level=logging.INFO)
+from litecascade.eval.metrics import compute_detection_metrics
+
 logger = logging.getLogger(__name__)
 
+NEVER = 2.0  # probabilities are <= 1, so a threshold of 2 disables that exit (JSON-safe, unlike inf)
 
+
+# --------------------------------------------------------------------------------------------- bounds
 def clopper_pearson_upper(m, n, alpha=0.05):
-    """One-sided Clopper-Pearson upper bound."""
+    """One-sided (1 - alpha) Clopper-Pearson upper bound for a binomial proportion with m successes in n."""
     if n == 0:
+        return 1.0
+    if m >= n:
         return 1.0
     if m == 0:
         return 1.0 - alpha ** (1.0 / n)
-    return beta_dist.ppf(1 - alpha, m + 1, n - m)
+    return float(beta_dist.ppf(1 - alpha, m + 1, n - m))
 
 
+def min_calibration_size(epsilon: float, alpha: float = 0.05) -> int:
+    """Smallest N_m for which m = 0 satisfies U_CP <= epsilon."""
+    return int(math.ceil(math.log(alpha) / math.log(1 - epsilon)))
+
+
+def max_allowed_misses(n: int, epsilon: float, alpha: float = 0.05) -> int:
+    """Largest m with U_CP(m, n) <= epsilon, or -1 if none."""
+    m = -1
+    while m + 1 <= n and clopper_pearson_upper(m + 1, n, alpha) <= epsilon:
+        m += 1
+    return m
+
+
+# --------------------------------------------------------------------------------------------- temperature
 class TemperatureScaler(nn.Module):
-    """Temperature scaling for calibration."""
     def __init__(self):
         super().__init__()
-        self.temperature = nn.Parameter(torch.ones(1))
-        
+        self.log_t = nn.Parameter(torch.zeros(1))
+
+    @property
+    def temperature(self):
+        return self.log_t.exp()
+
     def forward(self, logits):
         return logits / self.temperature
 
 
-def fit_temperature(logits, labels, max_iter=50):
-    """Fit temperature on calibration set by minimising NLL via LBFGS."""
+def fit_temperature(logits, labels, max_iter=100):
+    """Fit T > 0 on calibration logits by minimising NLL with L-BFGS (over log T)."""
+    logits_t = torch.as_tensor(np.asarray(logits), dtype=torch.float32)
+    labels_t = torch.as_tensor(np.asarray(labels), dtype=torch.long)
+    if len(labels_t) == 0:
+        return 1.0
     scaler = TemperatureScaler()
-    logits_t = torch.tensor(logits, dtype=torch.float32)
-    labels_t = torch.tensor(labels, dtype=torch.long)
-    
-    nll_before = F.cross_entropy(logits_t, labels_t).item()
-    
-    optimizer = torch.optim.LBFGS([scaler.temperature], lr=0.01, max_iter=max_iter)
-    
+    optimizer = torch.optim.LBFGS([scaler.log_t], lr=0.1, max_iter=max_iter, line_search_fn="strong_wolfe")
+
     def closure():
         optimizer.zero_grad()
-        scaled = scaler(logits_t)
-        loss = F.cross_entropy(scaled, labels_t)
+        loss = F.cross_entropy(scaler(logits_t), labels_t)
         loss.backward()
         return loss
-    
+
+    nll_before = F.cross_entropy(logits_t, labels_t).item()
     optimizer.step(closure)
-    
-    nll_after = F.cross_entropy(scaler(logits_t), labels_t).item()
-    
-    logger.info(f"Temperature scaling: T={scaler.temperature.item():.4f}, NLL before={nll_before:.4f}, after={nll_after:.4f}")
-    
-    return scaler.temperature.item()
+    T = float(scaler.temperature.item())
+    if not np.isfinite(T) or T <= 0:
+        T = 1.0
+    nll_after = F.cross_entropy(logits_t / T, labels_t).item()
+    if nll_after > nll_before:  # never make calibration worse than T = 1
+        T = 1.0
+    logger.info(f"Temperature scaling: T={T:.4f}, NLL before={nll_before:.4f}, after={min(nll_after, nll_before):.4f}")
+    return T
 
 
 def compute_ece(probs, labels, n_bins=15):
-    """Expected Calibration Error."""
-    bin_boundaries = np.linspace(0, 1, n_bins + 1)
+    """Expected Calibration Error (top-label)."""
+    probs = np.asarray(probs)
+    labels = np.asarray(labels)
+    if len(labels) == 0:
+        return 0.0
+    conf = probs.max(axis=1)
+    preds = probs.argmax(axis=1)
+    edges = np.linspace(0, 1, n_bins + 1)
     ece = 0.0
-    for i in range(n_bins):
-        lo, hi = bin_boundaries[i], bin_boundaries[i + 1]
-        mask = (probs.max(axis=1) > lo) & (probs.max(axis=1) <= hi)
-        if mask.sum() == 0:
-            continue
-        avg_confidence = probs.max(axis=1)[mask].mean()
-        preds = probs.argmax(axis=1)[mask]
-        avg_accuracy = (preds == labels[mask]).mean()
-        ece += mask.sum() / len(labels) * abs(avg_confidence - avg_accuracy)
-    return ece
+    for lo, hi in zip(edges[:-1], edges[1:], strict=True):
+        mask = (conf > lo) & (conf <= hi)
+        if mask.any():
+            ece += mask.mean() * abs(conf[mask].mean() - (preds[mask] == labels[mask]).mean())
+    return float(ece)
 
 
-def find_tau_b(model, calib_loader, epsilon=0.005, alpha=0.05, temperature=1.0):
-    """
-    Find tau_b: smallest tau such that CP upper bound on exit-induced miss rate <= epsilon.
-    """
+def softmax_t(logits, T: float) -> np.ndarray:
+    """float32 softmax(logits / T), bit-compatible with the model's torch inference path."""
+    return torch.softmax(
+        torch.as_tensor(np.asarray(logits), dtype=torch.float32) / torch.tensor([T], dtype=torch.float32), -1
+    ).numpy()
+
+
+# --------------------------------------------------------------------------------------------- thresholds
+def _just_above(v) -> float:
+    return float(np.nextafter(np.float32(v), np.float32(np.inf)))
+
+
+def select_tau_b(p1, analyst_pred, labels, epsilon=0.005, alpha=0.05, conservative=False) -> dict:
+    """Risk-controlled benign threshold (eq. 4). ``conservative=True`` counts every malicious window that
+    exits benign as a miss (ignores whether the Analyst would have caught it)."""
+    p1 = np.asarray(p1, dtype=np.float32)
+    labels = np.asarray(labels)
+    malicious = labels > 0
+    n_m = int(malicious.sum())
+    pred1 = p1.argmax(axis=1)
+    eligible = malicious & (pred1 == 0)
+    if not conservative:
+        eligible &= np.asarray(analyst_pred) != 0
+    scores = np.sort(p1[eligible, 0])[::-1]  # descending benign confidence of potential misses
+
+    m_max = max_allowed_misses(n_m, epsilon, alpha) if n_m > 0 else -1
+    out = {"N_m": n_m, "m_max": int(m_max), "epsilon": epsilon, "alpha": alpha, "min_N_m": min_calibration_size(epsilon, alpha)}
+    if m_max < 0:
+        out.update(tau_b=NEVER, feasible=False, m=0, ucp=clopper_pearson_upper(0, n_m, alpha))
+        return out
+    if len(scores) <= m_max:
+        tau = 0.0  # even exiting every benign-predicted window keeps m <= m_max
+    else:
+        tau = _just_above(scores[m_max])
+    m = int((eligible & (p1[:, 0] >= np.float32(tau)) & (pred1 == 0)).sum())
+    out.update(tau_b=float(tau), feasible=True, m=m, ucp=clopper_pearson_upper(m, n_m, alpha))
+    return out
+
+
+def select_tau_m(p1, labels, target_fpr=0.01) -> float:
+    """Smallest tau whose empirical rate of benign windows exiting as malicious is <= target_fpr."""
+    p1 = np.asarray(p1, dtype=np.float32)
+    labels = np.asarray(labels)
+    benign = labels == 0
+    n_b = int(benign.sum())
+    if n_b == 0:
+        return NEVER
+    pred1 = p1.argmax(axis=1)
+    scores = np.sort(p1[benign & (pred1 != 0)].max(axis=1))[::-1]
+    k = int(math.floor(target_fpr * n_b))
+    if len(scores) <= k:
+        return 0.0
+    return _just_above(scores[k])
+
+
+def gate_exit_mask(p1, tau_b, tau_m, verify_alerts=False) -> np.ndarray:
+    p1 = np.asarray(p1, dtype=np.float32)
+    pred1 = p1.argmax(axis=1)
+    mask = (pred1 == 0) & (p1[:, 0] >= np.float32(tau_b))
+    if not verify_alerts:
+        mask |= (pred1 != 0) & (p1.max(axis=1) >= np.float32(tau_m))
+    return mask
+
+
+# --------------------------------------------------------------------------------------------- evaluation
+@torch.no_grad()
+def collect_outputs(model, loader) -> dict:
+    """Raw logits of both exits + labels over a loader (offline analysis; runs both heads)."""
     model.eval()
-    
-    # Collect sentinel predictions and analyst predictions on calibration set
-    sentinel_logits_list = []
-    analyst_logits_list = []
-    labels_list = []
-    
-    with torch.no_grad():
-        for X, y in calib_loader:
-            l1, l2 = model(X, mode="train")
-            sentinel_logits_list.append(l1.cpu())
-            analyst_logits_list.append(l2.cpu())
-            labels_list.append(y.cpu())
-    
-    sentinel_logits = torch.cat(sentinel_logits_list, dim=0).numpy()
-    analyst_logits = torch.cat(analyst_logits_list, dim=0).numpy()
-    labels = torch.cat(labels_list, dim=0).numpy()
-    
-    # Apply temperature scaling to sentinel
-    sentinel_probs = torch.softmax(torch.tensor(sentinel_logits) / temperature, dim=-1).numpy()
-    analyst_preds = np.argmax(analyst_logits, axis=1)
-    
-    # Malicious calibration windows
-    malicious_mask = labels > 0
-    N_m = malicious_mask.sum()
-    
-    if N_m == 0:
-        logger.warning("No malicious samples in calibration set")
-        return 0.5, 0, 0
-    
-    # Search over fine grid of tau
-    tau_grid = np.linspace(0.0, 1.0, 1001)
-    best_tau = 1.0
-    
-    for tau in tau_grid:
-        # Count exit-induced misses: malicious windows that exit benign at sentinel
-        sentinel_preds = np.argmax(sentinel_probs, axis=1)
-        # Would exit: pred==0 and p[0] >= tau
-        would_exit = (sentinel_preds == 0) & (sentinel_probs[:, 0] >= tau)
-        
-        # Of those malicious that would exit benign, how many does analyst classify as malicious?
-        exit_miss = would_exit & malicious_mask
-        m = exit_miss.sum()
-        
-        U_CP = clopper_pearson_upper(int(m), int(N_m), alpha)
-        
-        if U_CP <= epsilon:
-            best_tau = tau
-            break
-    
-    return best_tau, int(m) if best_tau < 1.0 else 0, int(N_m)
+    l1s, l2s, ys = [], [], []
+    for batch in loader:
+        X, y = batch[0], batch[1]
+        l1, l2 = model(X, mode="train")
+        l1s.append(l1.float().cpu())
+        l2s.append(l2.float().cpu())
+        ys.append(y.cpu())
+    if not ys:
+        return {"l1": np.zeros((0, 2), np.float32), "l2": np.zeros((0, 2), np.float32), "y": np.zeros(0, np.int64)}
+    return {"l1": torch.cat(l1s).numpy(), "l2": torch.cat(l2s).numpy(), "y": torch.cat(ys).numpy()}
+
+
+def reweighted_exit_rates(exit_flags, labels, prevalences=(0.01, 0.02, 0.05)) -> dict:
+    exit_flags = np.asarray(exit_flags, dtype=float)
+    malicious = np.asarray(labels) > 0
+    out = {}
+    for prev in prevalences:
+        key = f"{prev * 100:g}pct"
+        if malicious.all() or (~malicious).all():
+            out[key] = float(exit_flags.mean()) if len(exit_flags) else 0.0
+            continue
+        out[key] = float(prev * exit_flags[malicious].mean() + (1 - prev) * exit_flags[~malicious].mean())
+    return out
+
+
+def evaluate_gate_arrays(l1, l2, labels, gate: dict, verify_alerts=False) -> dict:
+    """Offline cascade evaluation from both heads' logits (used for reports and ablations)."""
+    labels = np.asarray(labels)
+    p1 = softmax_t(l1, gate.get("T1", 1.0))
+    p2 = softmax_t(l2, gate.get("T2", 1.0))
+    exit_flags = gate_exit_mask(p1, gate["tau_b"], gate["tau_m"], verify_alerts)
+    final_probs = np.where(exit_flags[:, None], p1, p2)
+    preds = final_probs.argmax(axis=1)
+    pred1, pred2 = p1.argmax(axis=1), p2.argmax(axis=1)
+    malicious = labels > 0
+    n_m = int(malicious.sum())
+    exit_benign = exit_flags & (pred1 == 0)
+    report = {
+        "n": int(len(labels)),
+        "rho_raw": float(exit_flags.mean()) if len(labels) else 0.0,
+        "rho_reweighted": reweighted_exit_rates(exit_flags, labels),
+        "exit_induced_miss_rate": float((exit_benign & malicious & (pred2 != 0)).sum() / n_m) if n_m else 0.0,
+        "malicious_exited_benign_rate": float((exit_benign & malicious).sum() / n_m) if n_m else 0.0,
+        "cascade": compute_detection_metrics(labels, preds),
+        "sentinel_only": compute_detection_metrics(labels, pred1),
+        "analyst_only": compute_detection_metrics(labels, pred2),
+        "tau_b": float(gate["tau_b"]),
+        "tau_m": float(gate["tau_m"]),
+        "T1": float(gate.get("T1", 1.0)),
+        "T2": float(gate.get("T2", 1.0)),
+    }
+    report["recall_loss_vs_analyst"] = report["analyst_only"]["recall_malicious"] - report["cascade"]["recall_malicious"]
+    report["cascade_f1"] = report["cascade"]["f1_macro"]
+    report["analyst_only_f1"] = report["analyst_only"]["f1_macro"]
+    return report, preds, final_probs, exit_flags
+
+
+def calibrate_arrays(
+    l1, l2, labels, epsilon=0.005, alpha=0.05, target_fpr=0.01, verify_alerts=False, temperature=True, conservative=False
+) -> dict:
+    """Fit T1, T2, tau_b, tau_m on calibration outputs. Returns a JSON-serialisable gate config."""
+    labels = np.asarray(labels)
+    T1 = fit_temperature(l1, labels) if temperature else 1.0
+    T2 = fit_temperature(l2, labels) if temperature else 1.0
+    p1 = softmax_t(l1, T1)
+    analyst_pred = np.asarray(l2).argmax(axis=1)
+    tb = select_tau_b(p1, analyst_pred, labels, epsilon, alpha, conservative)
+    tau_m = NEVER if verify_alerts else select_tau_m(p1, labels, target_fpr)
+    gate = {
+        "T1": T1,
+        "T2": T2,
+        "tau_b": tb["tau_b"],
+        "tau_m": tau_m,
+        "verify_alerts": bool(verify_alerts),
+        "target_fpr": target_fpr,
+        "feasible": tb["feasible"],
+        "N_m": tb["N_m"],
+        "m_max": tb["m_max"],
+        "m_calib": tb["m"],
+        "ucp_calib": tb["ucp"],
+        "min_N_m": tb["min_N_m"],
+        "epsilon": epsilon,
+        "alpha": alpha,
+        "conservative": conservative,
+        "temperature_scaling": bool(temperature),
+        "ece_sentinel_before": compute_ece(softmax_t(l1, 1.0), labels),
+        "ece_sentinel_after": compute_ece(p1, labels),
+    }
+    if not tb["feasible"]:
+        logger.warning(
+            f"tau_b infeasible: N_m={tb['N_m']} malicious calibration windows < {tb['min_N_m']} needed for "
+            f"epsilon={epsilon}, alpha={alpha}. Benign early exit disabled."
+        )
+    return gate
+
+
+def apply_gate_to_model(model, gate: dict):
+    model.T1.fill_(gate["T1"])
+    model.T2.fill_(gate["T2"])
+    model.verify_alerts = bool(gate.get("verify_alerts", False))
+
+
+# --------------------------------------------------------------------------------------------- legacy API
+def find_tau_b(model, calib_loader, epsilon=0.005, alpha=0.05, temperature=1.0):
+    out = collect_outputs(model, calib_loader)
+    tb = select_tau_b(softmax_t(out["l1"], temperature), out["l2"].argmax(axis=1), out["y"], epsilon, alpha)
+    return tb["tau_b"], tb["m"], tb["N_m"]
 
 
 def find_tau_m(model, calib_loader, target_fpr=0.01, temperature=1.0):
-    """Find tau_m for target false-positive rate on calibration."""
-    model.eval()
-    
-    sentinel_logits_list = []
-    labels_list = []
-    
-    with torch.no_grad():
-        for X, y in calib_loader:
-            l1, l2 = model(X, mode="train")
-            sentinel_logits_list.append(l1.cpu())
-            labels_list.append(y.cpu())
-    
-    sentinel_logits = torch.cat(sentinel_logits_list, dim=0).numpy()
-    labels = torch.cat(labels_list, dim=0).numpy()
-    
-    sentinel_probs = torch.softmax(torch.tensor(sentinel_logits) / temperature, dim=-1).numpy()
-    
-    benign_mask = labels == 0
-    N_b = benign_mask.sum()
-    
-    if N_b == 0:
-        return 0.5
-    
-    tau_grid = np.linspace(0.0, 1.0, 1001)
-    best_tau = 0.5
-    
-    for tau in tau_grid:
-        sentinel_preds = np.argmax(sentinel_probs, axis=1)
-        # False positives: benign samples predicted as malicious with high confidence
-        would_alert = (sentinel_preds != 0) & (sentinel_probs.max(axis=1) >= tau)
-        fp_rate = would_alert[benign_mask].sum() / N_b
-        
-        if fp_rate <= target_fpr:
-            best_tau = tau
-            break
-    
-    return best_tau
+    out = collect_outputs(model, calib_loader)
+    return select_tau_m(softmax_t(out["l1"], temperature), out["y"], target_fpr)
 
 
 def evaluate_cascade(model, test_loader, tau_b, tau_m, temperature=1.0):
-    """Evaluate full cascade on test set."""
-    model.eval()
-    
-    all_preds = []
-    all_labels = []
-    exit_flags = []
-    analyst_preds_all = []
-    
-    with torch.no_grad():
-        for X, y in test_loader:
-            l1, l2 = model(X, mode="train")
-            
-            probs1 = torch.softmax(l1 / temperature, dim=-1)
-            preds1 = torch.argmax(probs1, dim=-1)
-            preds2 = torch.argmax(l2, dim=-1)
-            
-            for i in range(len(X)):
-                p1 = probs1[i]
-                pred = preds1[i].item()
-                
-                exited = False
-                if pred == 0 and p1[0].item() >= tau_b:
-                    exited = True
-                elif pred != 0 and p1.max().item() >= tau_m:
-                    exited = True
-                
-                if exited:
-                    all_preds.append(pred)
-                else:
-                    all_preds.append(preds2[i].item())
-                    
-                exit_flags.append(exited)
-                all_labels.append(y[i].item())
-                analyst_preds_all.append(preds2[i].item())
-    
-    all_preds = np.array(all_preds)
-    all_labels = np.array(all_labels)
-    exit_flags = np.array(exit_flags)
-    analyst_preds_all = np.array(analyst_preds_all)
-    
-    # Exit rate
-    rho_raw = exit_flags.mean()
-    
-    # Re-weighted exit rates for different malicious prevalence
-    rho_reweighted = {}
-    for prev in [0.01, 0.02, 0.05]:
-        malicious_mask = all_labels > 0
-        benign_mask = all_labels == 0
-        
-        n_mal = malicious_mask.sum()
-        n_ben = benign_mask.sum()
-        
-        if n_mal == 0 or n_ben == 0:
-            rho_reweighted[f"{int(prev*100)}pct"] = rho_raw
-            continue
-            
-        # Importance weights
-        w_mal = prev / (n_mal / len(all_labels))
-        w_ben = (1 - prev) / (n_ben / len(all_labels))
-        
-        weights = np.where(malicious_mask, w_mal, w_ben)
-        rho_reweighted[f"{int(prev*100)}pct"] = (exit_flags * weights).sum() / weights.sum()
-    
-    # Exit-induced recall loss
-    malicious_mask = all_labels > 0
-    if malicious_mask.sum() > 0:
-        # Malicious samples that exited as benign
-        exit_induced_misses = exit_flags & malicious_mask & (all_preds == 0)
-        recall_loss = exit_induced_misses.sum() / malicious_mask.sum()
-    else:
-        recall_loss = 0.0
-    
-    # F1 of cascade vs analyst-only
-    from litecascade.eval.metrics import compute_detection_metrics
-    cascade_metrics = compute_detection_metrics(all_labels, all_preds)
-    analyst_metrics = compute_detection_metrics(all_labels, analyst_preds_all)
-    
-    report = {
-        "rho_raw": float(rho_raw),
-        "rho_reweighted": {k: float(v) for k, v in rho_reweighted.items()},
-        "recall_loss": float(recall_loss),
-        "cascade_f1": float(cascade_metrics["f1_macro"]),
-        "analyst_only_f1": float(analyst_metrics["f1_macro"]),
-        "tau_b": float(tau_b),
-        "tau_m": float(tau_m),
-        "temperature": float(temperature),
-    }
-    
+    out = collect_outputs(model, test_loader)
+    report, *_ = evaluate_gate_arrays(out["l1"], out["l2"], out["y"], {"tau_b": tau_b, "tau_m": tau_m, "T1": temperature})
     return report
 
 
-def calibrate_and_report(model, calib_loader, test_loader, run_id, epsilon=0.005):
-    """Full calibration pipeline."""
-    
-    # 1. Collect calibration logits
-    calib_logits = []
-    calib_labels = []
-    model.eval()
-    with torch.no_grad():
-        for X, y in calib_loader:
-            l1, _ = model(X, mode="train")
-            calib_logits.append(l1.cpu())
-            calib_labels.append(y.cpu())
-    
-    calib_logits_np = torch.cat(calib_logits, dim=0).numpy()
-    calib_labels_np = torch.cat(calib_labels, dim=0).numpy()
-    
-    # ECE before
-    probs_before = torch.softmax(torch.tensor(calib_logits_np), dim=-1).numpy()
-    ece_before = compute_ece(probs_before, calib_labels_np)
-    
-    # 2. Temperature scaling
-    temperature = fit_temperature(calib_logits_np, calib_labels_np)
-    
-    probs_after = torch.softmax(torch.tensor(calib_logits_np) / temperature, dim=-1).numpy()
-    ece_after = compute_ece(probs_after, calib_labels_np)
-    
-    logger.info(f"ECE before: {ece_before:.4f}, after: {ece_after:.4f}")
-    
-    # Verify argmax unchanged
-    assert np.array_equal(probs_before.argmax(axis=1), probs_after.argmax(axis=1)), \
-        "Temperature scaling changed argmax!"
-    
-    # 3. Find tau_b
-    tau_b, m, N_m = find_tau_b(model, calib_loader, epsilon=epsilon, temperature=temperature)
-    logger.info(f"tau_b={tau_b:.4f}, m={m}, N_m={N_m}")
-    
-    # 4. Find tau_m
-    tau_m = find_tau_m(model, calib_loader, target_fpr=0.01, temperature=temperature)
-    logger.info(f"tau_m={tau_m:.4f}")
-    
-    # 5. Evaluate on test
-    report = evaluate_cascade(model, test_loader, tau_b, tau_m, temperature)
-    report["ece_before"] = float(ece_before)
-    report["ece_after"] = float(ece_after)
-    report["epsilon"] = epsilon
-    
-    # 6. Save
-    out_dir = Path(f"results/{run_id}")
+def calibrate_and_report(
+    model, calib_loader, test_loader, run_id, epsilon=0.005, alpha=0.05, target_fpr=0.01, out_root="results"
+):
+    cal = collect_outputs(model, calib_loader)
+    gate = calibrate_arrays(cal["l1"], cal["l2"], cal["y"], epsilon=epsilon, alpha=alpha, target_fpr=target_fpr)
+    apply_gate_to_model(model, gate)
+    test = collect_outputs(model, test_loader)
+    report, *_ = evaluate_gate_arrays(test["l1"], test["l2"], test["y"], gate)
+    report["gate"] = gate
+    out_dir = Path(out_root) / run_id
     out_dir.mkdir(parents=True, exist_ok=True)
-    
     with open(out_dir / "gate_report.json", "w") as f:
         json.dump(report, f, indent=2)
-    
-    # Save gate thresholds
-    Path("checkpoints").mkdir(exist_ok=True)
-    with open(f"checkpoints/gate_{run_id}.json", "w") as f:
-        json.dump({"tau_b": tau_b, "tau_m": tau_m, "temperature": temperature}, f, indent=2)
-    
     logger.info(f"Gate report saved to {out_dir / 'gate_report.json'}")
     return report

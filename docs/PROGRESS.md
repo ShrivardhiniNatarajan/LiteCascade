@@ -60,3 +60,28 @@
   * Explicitly documented any model modifications/deviations in `docs/BASELINES.md`.
 * **Verification output summary:** PyTorch Baselines correctly instantiate and emit sensible properties (parameters/MACs > 0). The `run` CLI successfully trains B3 for 2 epochs on the fixture.
 * **Known issues:** Extremely small synthetic datasets may have a 0-item evaluation set due to strict group splitting; added a fallback guard in `trainer.py`. PyTorch 2.x `torch.ao` module gives deprecation warnings during profiling, but correctly builds quantized graphs.
+
+### Stages 5-12: completion pass (2026-10-10)
+**Audit findings fixed**
+* Dataset loaders: CICIoT2023 / IoT-23 previously aliased the N-BaIoT synthetic generator and real paths returned an
+  empty DataFrame; `data/clean.py` did not exist. Real parsers now exist for all three (N-BaIoT UCI + Kaggle layouts,
+  CICIoT2023 CSVs, IoT-23 Zeek logs with the space-separated tail), sharing `data/clean.py`.
+* Fixture was i.i.d. noise with random labels (hence F1 = 0.51). New deterministic fixture (`data/synthetic.py`) has
+  learnable and partly temporal-only signal, and is written in the native file layouts so the parsers are exercised.
+* No feature scaling in any training script; calibration split == validation split; PIP "init" was a random
+  orthogonal matrix. Now: `data/pipeline.prepare_data` (train-only RobustScaler + PCA, disjoint calib split, real PCA init).
+* KD bug: teacher logits were indexed `[0:len(X)]` under a shuffled loader. Teacher logits are now computed for the
+  exact training windows and carried in the dataset.
+* Self-KD direction was reversed (KL(p1||p2) into the Analyst); now KL(p2||p1) into the Sentinel, as in eq. 5.
+* Sentinel temperature T1 was a trainable parameter optimised by the training loss; now T1/T2 are buffers fitted on
+  the calibration split.
+* Gate: m(tau) ignored the "Analyst would have flagged" condition of eq. 4 and an infeasible search returned
+  tau_b = 1.0 (still allowing exits at p = 1.0). Now exact fixed-sequence CP selection, float32 tie-safe thresholds,
+  explicit infeasibility (benign exit disabled).
+* Profiler reported 0 MACs for LSTM/GRU (fvcore) -> custom handles added.
+
+**Added**: structured pruning, INT8 QAT + dynamic INT8, re-calibration after quantization, genuine cascade inference
+with Analyst skipping, per-path cost profiling, baseline runner on the shared pipeline (B5 = PCA + dynamic INT8),
+ablation runner, report generator, model bundles + CLI predictor, FastAPI web dashboard, demo script, tests.
+
+**Known limits**: see README section 7 (no real-data results, no on-device measurement, no TFLite export).

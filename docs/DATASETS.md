@@ -1,64 +1,59 @@
-# Dataset Acquisition Guide
+# Datasets
 
-This document provides instructions on how to manually download and organize the three target IoT intrusion/malware datasets for LiteCascade.
+The real datasets are **not** included (size + licensing) and none of the numbers in this repository
+come from them. Download them yourself, place them as below, and pass `--dataset nbaiot|ciciot2023|iot23`
+(optionally `--data-root <folder>`). Loaders: `src/litecascade/data/{nbaiot,ciciot2023,iot23}.py`.
 
-## 1. N-BaIoT (UCI)
-* **Description:** Network traffic from 9 real IoT devices infected by Mirai and BASHLITE.
-* **URL:** [UCI Machine Learning Repository - N-BaIoT](https://archive.ics.uci.edu/ml/datasets/detection_of_IoT_botnet_attacks_N_BaIoT)
-* **License:** Open Access (Attribution).
-* **Expected Size:** ~7 GB (CSV files).
-* **Download Steps:**
-  1. Download all device zip files (e.g., `Danmini_Doorbell.zip`, `Provision_PT_737E_Security_Camera.zip`, etc.).
-  2. Extract each zip file into its own folder inside `data/raw/nbaiot/`.
-* **Expected Structure:**
+All loaders return the same schema: numeric feature columns + `label_binary` (0 benign / 1 malicious),
+`label_family`, `group` (split unit), `segment` (contiguous record stream; windows never cross it) and
+`timestamp` (ordering). Cleaning (`data/clean.py`): ±inf → NaN, drop NaN rows, drop exact duplicate
+records, drop constant feature columns.
+
+## 1. N-BaIoT (Meidan et al., 2018)
+* 9 devices, 115 features, benign + Mirai + BASHLITE (gafgyt). UCI: "detection_of_IoT_botnet_attacks_N_BaIoT"; also mirrored on Kaggle.
+* Two layouts are recognised under `data/raw/nbaiot/`:
   ```text
-  data/raw/nbaiot/
-  ├── Danmini_Doorbell/
-  │   ├── benign.csv
-  │   ├── gafgyt_combo.csv
-  │   └── ...
-  ├── Provision_PT_737E/
-  └── ...
+  # UCI (extract the per-device .rar archives)
+  Danmini_Doorbell/benign_traffic.csv
+  Danmini_Doorbell/gafgyt_attacks/{combo,junk,scan,tcp,udp}.csv
+  Danmini_Doorbell/mirai_attacks/{ack,scan,syn,udp,udpplain}.csv
+  ...
+  # Kaggle flat
+  1.benign.csv  1.gafgyt.combo.csv  1.mirai.ack.csv  ...  9.mirai.udpplain.csv
   ```
+* group = device, segment = file, order = file order (no timestamps in the CSVs).
+* ~7M rows: use `--max-rows-per-file 20000` (first N rows of each file, keeps temporal contiguity) and/or
+  `--max-train-windows` on a laptop. With 9 devices the default group split is 4/1/2/2 devices
+  (train/val/calib/test); every split must contain malicious windows (≥ 598 malicious calibration
+  windows for ε = 0.5 %, α = 0.05).
 
-## 2. CICIoT2023 (UNB)
-* **Description:** IoT dataset with 33 attacks performed on 105 IoT devices.
-* **URL:** [UNB CICIoT2023](https://www.unb.ca/cic/datasets/iotdataset-2023.html)
-* **License:** Open Access for research (Citation required).
-* **Expected Size:** ~20-30 GB.
-* **Download Steps:**
-  1. Register/request access at the UNB website.
-  2. Download the PCAP or CSV versions (CSV preferred).
-  3. Place the CSV files directly in `data/raw/ciciot2023/`.
-* **Expected Structure:**
+## 2. CICIoT2023 (Neto et al., 2023)
+* 46 features + `label` (33 attacks + benign), UNB CIC website. Put any number of CSVs (`part-*.csv` or
+  `Merged*.csv`) anywhere under `data/raw/ciciot2023/`.
+* group = segment = file; `label_family` = one of 8 categories (benign, ddos, dos, mirai, recon, spoofing,
+  web, bruteforce); `--task family` trains a multi-class model on them.
+* The public CSV rows carry no timestamps and are not guaranteed to be temporally ordered, so windows with
+  T > 1 may not contain real temporal structure: prefer `--window 1`. With few files use `--split-mode time`.
+
+## 3. IoT-23 (Stratosphere Lab, 2020)
+* Zeek `conn.log.labeled` files (the "lighter" release suffices):
   ```text
-  data/raw/ciciot2023/
-  ├── part-00000-xxxx.csv
-  ├── part-00001-xxxx.csv
-  └── ...
+  data/raw/iot23/CTU-IoT-Malware-Capture-1-1/bro/conn.log.labeled
+  data/raw/iot23/CTU-Honeypot-Capture-4-1/bro/conn.log.labeled
+  ...
   ```
+* The last three fields (`tunnel_parents label detailed-label`) are space-separated in IoT-23; the parser
+  handles that. Features: 9 numeric Zeek fields + one-hot `proto`, `conn_state`, `service` (fixed vocabularies).
+* group = segment = capture, ordered by `ts`. Most captures are single-class; if a group split cannot give
+  every split both classes use `--split-mode time` (chronological blocks per capture with a purge gap of T
+  records). Some captures are multi-GB: use `--max-rows-per-file`.
 
-## 3. IoT-23 (Stratosphere)
-* **Description:** Network traffic from IoT devices (3 benign captures, 20 malware captures).
-* **URL:** [Stratosphere Laboratory - IoT-23](https://www.stratosphereips.org/datasets-iot23)
-* **License:** CC BY 4.0.
-* **Expected Size:** ~21 GB (Zeek logs).
-* **Download Steps:**
-  1. Download the `conn.log.labeled` files for each scenario.
-  2. Place them in their respective scenario folders.
-* **Expected Structure:**
-  ```text
-  data/raw/iot23/
-  ├── opt/Malware-Project/MacCDC/
-  │   └── conn.log.labeled
-  ├── opt/Malware-Project/IoTScenarios/
-  │   └── conn.log.labeled
-  └── ...
-  ```
-
-## Synthetic Data
-If you don't have access to these datasets, you can generate a synthetic fixture for testing:
+## Synthetic fixture (what this repository actually runs on)
 ```bash
-python scripts/make_fixture.py
+python scripts/make_fixture.py        # writes data/fixture/{nbaiot,ciciot2023,iot23}
 ```
-This generates `data/processed/synthetic_{dataset}.csv` containing ~2k rows with the required schema.
+Deterministic synthetic records written **in the native layouts above** so the real parsers are exercised
+(`--dataset fixture` = N-BaIoT layout, 10 synthetic devices, 16,000 records; also `fixture-ciciot2023`,
+`fixture-iot23`). It is generated from a latent AR(1) process with attack-specific mean shifts and an
+alternating (temporal-only) "scan" pattern — see `src/litecascade/data/synthetic.py`. Results on it only show
+that the pipeline works; they are not evidence of real-world detection performance.

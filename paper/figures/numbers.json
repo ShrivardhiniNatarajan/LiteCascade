@@ -1,0 +1,2143 @@
+{
+ "cards": [
+  {
+   "id": "fixture_R_int8",
+   "name": "LiteCascade-R INT8",
+   "kind": "cascade",
+   "arch": "litecascade_R",
+   "family": "cascade",
+   "description": "PCA-initialised projection + depthwise-separable stem; Sentinel exit with a Clopper-Pearson gate; Analyst = 2 residual DS-TCN blocks + BiGRU + attention pooling",
+   "quantization": "qat",
+   "dataset": "fixture",
+   "is_synthetic": true,
+   "window": 10,
+   "n_features": 115,
+   "class_names": [
+    "benign",
+    "malicious"
+   ],
+   "gate": {
+    "T1": 1.2458080053329468,
+    "T2": 3.0095431804656982,
+    "tau_b": 0.8574681878089905,
+    "tau_m": 0.8789088726043701,
+    "verify_alerts": false,
+    "target_fpr": 0.01,
+    "feasible": true,
+    "N_m": 1528,
+    "m_max": 2,
+    "m_calib": 2,
+    "ucp_calib": 0.004114495759968532,
+    "min_N_m": 598,
+    "epsilon": 0.005,
+    "alpha": 0.05,
+    "conservative": false,
+    "temperature_scaling": true,
+    "ece_sentinel_before": 0.021191939970304698,
+    "ece_sentinel_after": 0.011776013657977752
+   },
+   "created": "2026-10-10T22:59:02",
+   "metrics": {
+    "f1_macro": 0.9364638640884411,
+    "recall_malicious": 0.8972513089005235,
+    "fpr": 0.025284450063211124,
+    "mcc": 0.875597875693809,
+    "params": 16356,
+    "macs": 65756.2610932476,
+    "macs_full": 159150,
+    "macs_sentinel": 51094,
+    "size_kb": 50.2734375,
+    "latency_p50_ms": 5.544850020669401,
+    "latency_sentinel_ms": 1.1602499871514738,
+    "rho": 0.8643086816720257,
+    "exit_induced_miss_rate": 0.0,
+    "sentinel_f1": 0.9400051276604925,
+    "analyst_f1": 0.9326030921554911,
+    "measured_speedup": 2.7598437232580713,
+    "param_breakdown": {
+     "pip": 3712,
+     "stem": 912,
+     "sentinel_exit_only": 550,
+     "analyst_exit_only": 11182,
+     "sentinel_path_total": 5174,
+     "total": 16356
+    }
+   }
+  },
+  {
+   "id": "fixture_T_int8",
+   "name": "LiteCascade-T INT8",
+   "kind": "cascade",
+   "arch": "litecascade_T",
+   "family": "cascade",
+   "description": "PCA-initialised projection + depthwise-separable stem; Sentinel exit with a Clopper-Pearson gate; Analyst = 2 residual DS-TCN blocks + attention pooling",
+   "quantization": "qat",
+   "dataset": "fixture",
+   "is_synthetic": true,
+   "window": 10,
+   "n_features": 115,
+   "class_names": [
+    "benign",
+    "malicious"
+   ],
+   "gate": {
+    "T1": 1.025103211402893,
+    "T2": 2.7222940921783447,
+    "tau_b": 0.9372468590736389,
+    "tau_m": 0.846082329750061,
+    "verify_alerts": false,
+    "target_fpr": 0.01,
+    "feasible": true,
+    "N_m": 1528,
+    "m_max": 2,
+    "m_calib": 2,
+    "ucp_calib": 0.004114495759968532,
+    "min_N_m": 598,
+    "epsilon": 0.005,
+    "alpha": 0.05,
+    "conservative": false,
+    "temperature_scaling": true,
+    "ece_sentinel_before": 0.012860231135052528,
+    "ece_sentinel_after": 0.01318031582035049
+   },
+   "created": "2026-10-10T22:59:58",
+   "metrics": {
+    "f1_macro": 0.9234551056982521,
+    "recall_malicious": 0.8723821989528796,
+    "fpr": 0.02654867256637168,
+    "mcc": 0.8514295588344754,
+    "params": 9084,
+    "macs": 58102.83344051447,
+    "macs_full": 89742,
+    "macs_sentinel": 51094,
+    "size_kb": 39.296875,
+    "latency_p50_ms": 2.8457499865908176,
+    "latency_sentinel_ms": 1.233350019901991,
+    "rho": 0.8186495176848875,
+    "exit_induced_miss_rate": 0.0,
+    "sentinel_f1": 0.9325266931103815,
+    "analyst_f1": 0.9166690553250674,
+    "measured_speedup": 1.6009743313564528,
+    "param_breakdown": {
+     "pip": 3712,
+     "stem": 912,
+     "sentinel_exit_only": 550,
+     "analyst_exit_only": 3910,
+     "sentinel_path_total": 5174,
+     "total": 9084
+    }
+   }
+  },
+  {
+   "id": "fixture_b6",
+   "name": "B6 CNN-BiLSTM",
+   "kind": "baseline",
+   "arch": "b6",
+   "family": "hybrid",
+   "description": "Conv1d + max-pool + BiLSTM (Jouhari & Guizani)",
+   "quantization": "none",
+   "dataset": "fixture",
+   "is_synthetic": true,
+   "window": 10,
+   "n_features": 115,
+   "class_names": [
+    "benign",
+    "malicious"
+   ],
+   "gate": null,
+   "created": "2026-10-21T18:59:25",
+   "metrics": {
+    "f1_macro": 0.9348200771841841,
+    "f1_ci": [
+     0.9251120473128686,
+     0.942605056096984
+    ],
+    "recall_malicious": 0.8913612565445026,
+    "fpr": 0.022756005056890013,
+    "mcc": 0.8729349896252179,
+    "params": 88962,
+    "macs": 548736,
+    "size_kb": 351.4990234375,
+    "size_fp32_kb": 351.4990234375,
+    "latency_p50_ms": 0.542250054422766
+   }
+  },
+  {
+   "id": "fixture_teacher",
+   "name": "Teacher CNN-BiLSTM",
+   "kind": "baseline",
+   "arch": "teacher",
+   "family": "hybrid",
+   "description": "2x Conv1d + 2-layer BiLSTM(128) + attention pooling; distillation source",
+   "quantization": "none",
+   "dataset": "fixture",
+   "is_synthetic": true,
+   "window": 10,
+   "n_features": 115,
+   "class_names": [
+    "benign",
+    "malicious"
+   ],
+   "gate": null,
+   "created": "2026-10-21T18:58:36",
+   "metrics": {
+    "f1_macro": 0.9364211391021462,
+    "f1_ci": [
+     0.9278068538565558,
+     0.9433196186550169
+    ],
+    "recall_malicious": 0.8913612565445026,
+    "fpr": 0.019595448798988623,
+    "mcc": 0.8764033765178147,
+    "params": 739843,
+    "macs": 7349632,
+    "size_kb": 2897.9580078125,
+    "size_fp32_kb": 2897.9580078125,
+    "latency_p50_ms": 2.570750017184764
+   }
+  },
+  {
+   "id": "fixture_b3",
+   "name": "B3 LSTM",
+   "kind": "baseline",
+   "arch": "b3",
+   "family": "recurrent",
+   "description": "single-layer LSTM, last time step",
+   "quantization": "none",
+   "dataset": "fixture",
+   "is_synthetic": true,
+   "window": 10,
+   "n_features": 115,
+   "class_names": [
+    "benign",
+    "malicious"
+   ],
+   "gate": null,
+   "created": "2026-10-21T18:58:50",
+   "metrics": {
+    "f1_macro": 0.9253993348961457,
+    "f1_ci": [
+     0.9161066324555095,
+     0.9332368544037097
+    ],
+    "recall_malicious": 0.875,
+    "fpr": 0.025284450063211124,
+    "mcc": 0.8552089381168206,
+    "params": 46466,
+    "macs": 458368,
+    "size_kb": 184.1455078125,
+    "size_fp32_kb": 184.1455078125,
+    "latency_p50_ms": 0.30670000705868006
+   }
+  },
+  {
+   "id": "fixture_b4",
+   "name": "B4 BiLSTM",
+   "kind": "baseline",
+   "arch": "b4",
+   "family": "recurrent",
+   "description": "bidirectional LSTM, last time step",
+   "quantization": "none",
+   "dataset": "fixture",
+   "is_synthetic": true,
+   "window": 10,
+   "n_features": 115,
+   "class_names": [
+    "benign",
+    "malicious"
+   ],
+   "gate": null,
+   "created": "2026-10-21T18:59:01",
+   "metrics": {
+    "f1_macro": 0.9296731593325434,
+    "f1_ci": [
+     0.9200639121067689,
+     0.9374513162761984
+    ],
+    "recall_malicious": 0.8880890052356021,
+    "fpr": 0.02970922882427307,
+    "mcc": 0.8623256936084166,
+    "params": 92930,
+    "macs": 916736,
+    "size_kb": 366.4423828125,
+    "size_fp32_kb": 366.4423828125,
+    "latency_p50_ms": 0.40850002551451325
+   }
+  },
+  {
+   "id": "fixture_b5",
+   "name": "B5 PCA-BiLSTM INT8",
+   "kind": "baseline",
+   "arch": "b5",
+   "family": "recurrent",
+   "description": "BiLSTM on 32 PCA components, dynamic INT8 (Wang et al.)",
+   "quantization": "dynamic",
+   "dataset": "fixture",
+   "is_synthetic": true,
+   "window": 10,
+   "n_features": 115,
+   "class_names": [
+    "benign",
+    "malicious"
+   ],
+   "gate": null,
+   "created": "2026-10-21T18:59:11",
+   "metrics": {
+    "f1_macro": 0.9351597501901041,
+    "f1_ci": [
+     0.9257256019420768,
+     0.9441547063661196
+    ],
+    "recall_malicious": 0.893979057591623,
+    "fpr": 0.02465233881163085,
+    "mcc": 0.8732680897196102,
+    "params": 50434,
+    "macs": 491776,
+    "size_kb": 57.1240234375,
+    "size_fp32_kb": 200.4423828125,
+    "latency_p50_ms": 0.8016499341465533
+   }
+  },
+  {
+   "id": "fixture_b9",
+   "name": "B9 BiGRU",
+   "kind": "baseline",
+   "arch": "b9",
+   "family": "recurrent",
+   "description": "bidirectional GRU, mean pooling",
+   "quantization": "none",
+   "dataset": "fixture",
+   "is_synthetic": true,
+   "window": 10,
+   "n_features": 115,
+   "class_names": [
+    "benign",
+    "malicious"
+   ],
+   "gate": null,
+   "created": "2026-10-21T19:00:08",
+   "metrics": {
+    "f1_macro": 0.9341797302950023,
+    "f1_ci": [
+     0.9254991722334467,
+     0.9409915999432534
+    ],
+    "recall_malicious": 0.8913612565445026,
+    "fpr": 0.02402022756005057,
+    "mcc": 0.8715508575649585,
+    "params": 47714,
+    "macs": 469632,
+    "size_kb": 189.8173828125,
+    "size_fp32_kb": 189.8173828125,
+    "latency_p50_ms": 0.9322499972768128
+   }
+  },
+  {
+   "id": "fixture_b10",
+   "name": "B10 TCN",
+   "kind": "baseline",
+   "arch": "b10",
+   "family": "convolutional",
+   "description": "3 residual dilated causal conv blocks (dilation 1, 2, 4)",
+   "quantization": "none",
+   "dataset": "fixture",
+   "is_synthetic": true,
+   "window": 10,
+   "n_features": 115,
+   "class_names": [
+    "benign",
+    "malicious"
+   ],
+   "gate": null,
+   "created": "2026-10-21T19:00:30",
+   "metrics": {
+    "f1_macro": 0.941277994674953,
+    "f1_ci": [
+     0.9326426442899735,
+     0.9486911832684433
+    ],
+    "recall_malicious": 0.8985602094240838,
+    "fpr": 0.01706700379266751,
+    "mcc": 0.8857717248834508,
+    "params": 22402,
+    "macs": 221184,
+    "size_kb": 92.9248046875,
+    "size_fp32_kb": 92.9248046875,
+    "latency_p50_ms": 2.683200058527291
+   }
+  },
+  {
+   "id": "fixture_b11",
+   "name": "B11 ResNet-1D",
+   "kind": "baseline",
+   "arch": "b11",
+   "family": "convolutional",
+   "description": "2 residual Conv1d stages + global average pooling",
+   "quantization": "none",
+   "dataset": "fixture",
+   "is_synthetic": true,
+   "window": 10,
+   "n_features": 115,
+   "class_names": [
+    "benign",
+    "malicious"
+   ],
+   "gate": null,
+   "created": "2026-10-21T19:00:50",
+   "metrics": {
+    "f1_macro": 0.9326123154857934,
+    "f1_ci": [
+     0.9255004090533174,
+     0.9404266010771717
+    ],
+    "recall_malicious": 0.8959424083769634,
+    "fpr": 0.0316055625790139,
+    "mcc": 0.8675308790591681,
+    "params": 38786,
+    "macs": 386688,
+    "size_kb": 161.5146484375,
+    "size_fp32_kb": 161.5146484375,
+    "latency_p50_ms": 1.3531999429687858
+   }
+  },
+  {
+   "id": "fixture_b7",
+   "name": "B7 DS-CNN",
+   "kind": "baseline",
+   "arch": "b7",
+   "family": "convolutional",
+   "description": "depthwise-separable Conv1d + global average pooling",
+   "quantization": "none",
+   "dataset": "fixture",
+   "is_synthetic": true,
+   "window": 10,
+   "n_features": 115,
+   "class_names": [
+    "benign",
+    "malicious"
+   ],
+   "gate": null,
+   "created": "2026-10-21T18:59:31",
+   "metrics": {
+    "f1_macro": 0.9387014118696639,
+    "f1_ci": [
+     0.9316127312433445,
+     0.9462722954304833
+    ],
+    "recall_malicious": 0.8965968586387435,
+    "fpr": 0.020227560050568902,
+    "mcc": 0.8805096731813983,
+    "params": 8014,
+    "macs": 77178,
+    "size_kb": 34.0830078125,
+    "size_fp32_kb": 34.0830078125,
+    "latency_p50_ms": 0.5025499849580228
+   }
+  },
+  {
+   "id": "fixture_b8",
+   "name": "B8 Tiny Transformer",
+   "kind": "baseline",
+   "arch": "b8",
+   "family": "attention",
+   "description": "2-layer, 2-head Transformer encoder, mean pooling",
+   "quantization": "none",
+   "dataset": "fixture",
+   "is_synthetic": true,
+   "window": 10,
+   "n_features": 115,
+   "class_names": [
+    "benign",
+    "malicious"
+   ],
+   "gate": null,
+   "created": "2026-10-21T18:59:48",
+   "metrics": {
+    "f1_macro": 0.9065464525990842,
+    "f1_ci": [
+     0.8967112688881272,
+     0.9154077554434279
+    ],
+    "recall_malicious": 0.875,
+    "fpr": 0.06257901390644753,
+    "mcc": 0.8146875946345686,
+    "params": 20866,
+    "macs": 219904,
+    "size_kb": 91.0146484375,
+    "size_fp32_kb": 91.0146484375,
+    "latency_p50_ms": 1.3015500153414905
+   }
+  },
+  {
+   "id": "fixture_b1",
+   "name": "B1 L1-MLP (SNIPE)",
+   "kind": "baseline",
+   "arch": "b1",
+   "family": "mlp",
+   "description": "MLP on the flattened window with L1 regularisation",
+   "quantization": "none",
+   "dataset": "fixture",
+   "is_synthetic": true,
+   "window": 10,
+   "n_features": 115,
+   "class_names": [
+    "benign",
+    "malicious"
+   ],
+   "gate": null,
+   "created": "2026-10-21T18:58:42",
+   "metrics": {
+    "f1_macro": 0.9480992440386585,
+    "f1_ci": [
+     0.9398397889339428,
+     0.9545615058994494
+    ],
+    "recall_malicious": 0.9136125654450262,
+    "fpr": 0.018331226295828066,
+    "mcc": 0.8982910326249186,
+    "params": 75810,
+    "macs": 75712,
+    "size_kb": 298.8330078125,
+    "size_fp32_kb": 298.8330078125,
+    "latency_p50_ms": 0.08149998029693961
+   }
+  }
+ ],
+ "gate_curve": [
+  {
+   "epsilon": 0.001,
+   "alpha": 0.05,
+   "tau_b": 2.0,
+   "feasible": false,
+   "N_m": 1528,
+   "min_N_m": 2995,
+   "m_max": -1,
+   "rho": 0.3887459807073955,
+   "exit_induced_miss_rate": 0.0,
+   "f1_macro": 0.933902031935826,
+   "recall": 0.8972513089005235,
+   "fpr": 0.03034134007585335
+  },
+  {
+   "epsilon": 0.002,
+   "alpha": 0.05,
+   "tau_b": 0.8987662196159363,
+   "feasible": true,
+   "N_m": 1528,
+   "min_N_m": 1497,
+   "m_max": 0,
+   "rho": 0.8443729903536977,
+   "exit_induced_miss_rate": 0.0,
+   "f1_macro": 0.9361436037829766,
+   "recall": 0.8972513089005235,
+   "fpr": 0.025916561314791402
+  },
+  {
+   "epsilon": 0.003,
+   "alpha": 0.05,
+   "tau_b": 0.8987662196159363,
+   "feasible": true,
+   "N_m": 1528,
+   "min_N_m": 998,
+   "m_max": 0,
+   "rho": 0.8443729903536977,
+   "exit_induced_miss_rate": 0.0,
+   "f1_macro": 0.9361436037829766,
+   "recall": 0.8972513089005235,
+   "fpr": 0.025916561314791402
+  },
+  {
+   "epsilon": 0.005,
+   "alpha": 0.05,
+   "tau_b": 0.8574681878089905,
+   "feasible": true,
+   "N_m": 1528,
+   "min_N_m": 598,
+   "m_max": 2,
+   "rho": 0.8643086816720257,
+   "exit_induced_miss_rate": 0.0,
+   "f1_macro": 0.9364638640884411,
+   "recall": 0.8972513089005235,
+   "fpr": 0.025284450063211124
+  },
+  {
+   "epsilon": 0.0075,
+   "alpha": 0.05,
+   "tau_b": 0.840305507183075,
+   "feasible": true,
+   "N_m": 1528,
+   "min_N_m": 398,
+   "m_max": 5,
+   "rho": 0.8700964630225081,
+   "exit_induced_miss_rate": 0.0,
+   "f1_macro": 0.9364638640884411,
+   "recall": 0.8972513089005235,
+   "fpr": 0.025284450063211124
+  },
+  {
+   "epsilon": 0.01,
+   "alpha": 0.05,
+   "tau_b": 0.8131862282752991,
+   "feasible": true,
+   "N_m": 1528,
+   "min_N_m": 299,
+   "m_max": 8,
+   "rho": 0.8800643086816721,
+   "exit_induced_miss_rate": 0.0006544502617801048,
+   "f1_macro": 0.9367795968895511,
+   "recall": 0.8965968586387435,
+   "fpr": 0.02402022756005057
+  },
+  {
+   "epsilon": 0.015,
+   "alpha": 0.05,
+   "tau_b": 0.7569612860679626,
+   "feasible": true,
+   "N_m": 1528,
+   "min_N_m": 199,
+   "m_max": 14,
+   "rho": 0.8942122186495177,
+   "exit_induced_miss_rate": 0.002617801047120419,
+   "f1_macro": 0.9374062141040709,
+   "recall": 0.8946335078534031,
+   "fpr": 0.020859671302149177
+  },
+  {
+   "epsilon": 0.02,
+   "alpha": 0.05,
+   "tau_b": 0.6737769246101379,
+   "feasible": true,
+   "N_m": 1528,
+   "min_N_m": 149,
+   "m_max": 21,
+   "rho": 0.9096463022508039,
+   "exit_induced_miss_rate": 0.005235602094240838,
+   "f1_macro": 0.9377071675415976,
+   "recall": 0.8920157068062827,
+   "fpr": 0.017699115044247787
+  },
+  {
+   "epsilon": 0.03,
+   "alpha": 0.05,
+   "tau_b": 0.5826293230056763,
+   "feasible": true,
+   "N_m": 1528,
+   "min_N_m": 99,
+   "m_max": 34,
+   "rho": 0.9244372990353698,
+   "exit_induced_miss_rate": 0.012434554973821989,
+   "f1_macro": 0.9357281267255366,
+   "recall": 0.8848167539267016,
+   "fpr": 0.014538558786346398
+  },
+  {
+   "epsilon": 0.05,
+   "alpha": 0.05,
+   "tau_b": 0.0,
+   "feasible": true,
+   "N_m": 1528,
+   "min_N_m": 59,
+   "m_max": 62,
+   "rho": 0.9360128617363344,
+   "exit_induced_miss_rate": 0.020942408376963352,
+   "f1_macro": 0.9330903006035977,
+   "recall": 0.8763089005235603,
+   "fpr": 0.011378002528445006
+  },
+  {
+   "epsilon": 0.075,
+   "alpha": 0.05,
+   "tau_b": 0.0,
+   "feasible": true,
+   "N_m": 1528,
+   "min_N_m": 39,
+   "m_max": 97,
+   "rho": 0.9360128617363344,
+   "exit_induced_miss_rate": 0.020942408376963352,
+   "f1_macro": 0.9330903006035977,
+   "recall": 0.8763089005235603,
+   "fpr": 0.011378002528445006
+  },
+  {
+   "epsilon": 0.1,
+   "alpha": 0.05,
+   "tau_b": 0.0,
+   "feasible": true,
+   "N_m": 1528,
+   "min_N_m": 29,
+   "m_max": 133,
+   "rho": 0.9360128617363344,
+   "exit_induced_miss_rate": 0.020942408376963352,
+   "f1_macro": 0.9330903006035977,
+   "recall": 0.8763089005235603,
+   "fpr": 0.011378002528445006
+  }
+ ],
+ "stages_R": [
+  {
+   "stage": "joint_kd",
+   "test": {
+    "n": 3110,
+    "rho_raw": 0.8819935691318328,
+    "rho_reweighted": {
+     "1pct": 0.9189539717105394,
+     "2pct": 0.9181860723717741,
+     "5pct": 0.9158823743554781
+    },
+    "exit_induced_miss_rate": 0.001963350785340314,
+    "malicious_exited_benign_rate": 0.05039267015706806,
+    "cascade": {
+     "accuracy": 0.9385852090032154,
+     "precision": 0.9778413152251608,
+     "recall_malicious": 0.8952879581151832,
+     "recall_macro": 0.9378462546580972,
+     "f1_macro": 0.9383718255669826,
+     "fpr": 0.019595448798988623,
+     "mcc": 0.8800000350496927,
+     "tn": 1551,
+     "fp": 31,
+     "fn": 160,
+     "tp": 1368
+    },
+    "sentinel_only": {
+     "accuracy": 0.9382636655948553,
+     "precision": 0.9710860366713682,
+     "recall_malicious": 0.9011780104712042,
+     "recall_macro": 0.9376307245782064,
+     "f1_macro": 0.9380915115947781,
+     "fpr": 0.025916561314791402,
+     "mcc": 0.8785458312514702,
+     "tn": 1541,
+     "fp": 41,
+     "fn": 151,
+     "tp": 1377
+    },
+    "analyst_only": {
+     "accuracy": 0.9353697749196141,
+     "precision": 0.9715707178393745,
+     "recall_malicious": 0.8946335078534031,
+     "recall_macro": 0.934674528895096,
+     "f1_macro": 0.9351644846872496,
+     "fpr": 0.025284450063211124,
+     "mcc": 0.8731819141426688,
+     "tn": 1542,
+     "fp": 40,
+     "fn": 161,
+     "tp": 1367
+    },
+    "tau_b": 0.7919518351554871,
+    "tau_m": 0.8799874186515808,
+    "T1": 1.1353448629379272,
+    "T2": 2.957092761993408,
+    "recall_loss_vs_analyst": -0.0006544502617801262,
+    "cascade_f1": 0.9383718255669826,
+    "analyst_only_f1": 0.9351644846872496,
+    "live_inference": {
+     "agreement_with_offline": 1.0,
+     "exit_agreement": 1.0,
+     "analyst_invocations": 367,
+     "windows": 3110,
+     "analyst_skipped_fraction": 0.8819935691318328,
+     "seconds_total_batched": 0.08937539998441935
+    }
+   },
+   "profile": {
+    "params": {
+     "pip": 3712,
+     "stem": 912,
+     "sentinel_exit_only": 746,
+     "analyst_exit_only": 12722,
+     "sentinel_path_total": 5370,
+     "total": 18092
+    },
+    "macs_sentinel_path": 52928,
+    "macs_analyst_incremental": 123456,
+    "macs_full": 176384,
+    "latency_sentinel_path": {
+     "p50_ms": 0.5772500007878989,
+     "p95_ms": 1.1845799919683484,
+     "mean_ms": 0.6601954987854697
+    },
+    "latency_full_path": {
+     "p50_ms": 2.365549997193739,
+     "p95_ms": 3.912685037357732,
+     "mean_ms": 2.5590354995802045
+    },
+    "latency_device": "host CPU, batch 1 (not target IoT hardware)",
+    "rho": 0.8819935691318328,
+    "expected_macs": 67496.60192926045,
+    "analytic_speedup_macs": 2.6132278508606785,
+    "measured_cascade_mean_ms": 1.1251749965595081,
+    "measured_full_mean_ms": 2.653167500102427,
+    "measured_speedup": 2.3580043177417926,
+    "measured_on_windows": 200,
+    "size_kb_serialized": 93.900390625
+   },
+   "gate": {
+    "T1": 1.1353448629379272,
+    "T2": 2.957092761993408,
+    "tau_b": 0.7919518351554871,
+    "tau_m": 0.8799874186515808,
+    "verify_alerts": false,
+    "target_fpr": 0.01,
+    "feasible": true,
+    "N_m": 1528,
+    "m_max": 2,
+    "m_calib": 2,
+    "ucp_calib": 0.004114495759968532,
+    "min_N_m": 598,
+    "epsilon": 0.005,
+    "alpha": 0.05,
+    "conservative": false,
+    "temperature_scaling": true,
+    "ece_sentinel_before": 0.017718977138543816,
+    "ece_sentinel_after": 0.015692063083219344
+   }
+  },
+  {
+   "stage": "pruned_0.3",
+   "test": {
+    "n": 3110,
+    "rho_raw": 0.8643086816720257,
+    "rho_reweighted": {
+     "1pct": 0.8863932509713333,
+     "2pct": 0.8859344159755362,
+     "5pct": 0.8845579109881453
+    },
+    "exit_induced_miss_rate": 0.0,
+    "malicious_exited_benign_rate": 0.028795811518324606,
+    "cascade": {
+     "accuracy": 0.9392282958199357,
+     "precision": 0.9744861800141743,
+     "recall_malicious": 0.899869109947644,
+     "recall_macro": 0.938556552445377,
+     "f1_macro": 0.9390440117396718,
+     "fpr": 0.022756005056890013,
+     "mcc": 0.8807655515825458,
+     "tn": 1546,
+     "fp": 36,
+     "fn": 153,
+     "tp": 1375
+    },
+    "sentinel_only": {
+     "accuracy": 0.942443729903537,
+     "precision": 0.9726699369306236,
+     "recall_malicious": 0.9083769633507853,
+     "recall_macro": 0.9418623122695773,
+     "f1_macro": 0.9423004070760229,
+     "fpr": 0.02465233881163085,
+     "mcc": 0.8866002077198097,
+     "tn": 1543,
+     "fp": 39,
+     "fn": 140,
+     "tp": 1388
+    },
+    "analyst_only": {
+     "accuracy": 0.9353697749196141,
+     "precision": 0.9695682944090588,
+     "recall_malicious": 0.8965968586387435,
+     "recall_macro": 0.9347080374103958,
+     "f1_macro": 0.9351783613878681,
+     "fpr": 0.02718078381795196,
+     "mcc": 0.8729323339208398,
+     "tn": 1539,
+     "fp": 43,
+     "fn": 158,
+     "tp": 1370
+    },
+    "tau_b": 0.8778191804885864,
+    "tau_m": 0.8517992496490479,
+    "T1": 1.1288783550262451,
+    "T2": 3.0566494464874268,
+    "recall_loss_vs_analyst": -0.00327225130890052,
+    "cascade_f1": 0.9390440117396718,
+    "analyst_only_f1": 0.9351783613878681,
+    "live_inference": {
+     "agreement_with_offline": 1.0,
+     "exit_agreement": 1.0,
+     "analyst_invocations": 422,
+     "windows": 3110,
+     "analyst_skipped_fraction": 0.8643086816720258,
+     "seconds_total_batched": 0.09503639995818958
+    }
+   },
+   "profile": {
+    "params": {
+     "pip": 3712,
+     "stem": 912,
+     "sentinel_exit_only": 550,
+     "analyst_exit_only": 11182,
+     "sentinel_path_total": 5174,
+     "total": 16356
+    },
+    "macs_sentinel_path": 51094,
+    "macs_analyst_incremental": 108056,
+    "macs_full": 159150,
+    "latency_sentinel_path": {
+     "p50_ms": 0.6122500053606927,
+     "p95_ms": 1.2151799921412019,
+     "mean_ms": 0.6858384975930676
+    },
+    "latency_full_path": {
+     "p50_ms": 3.958799992688,
+     "p95_ms": 11.774515008437444,
+     "mean_ms": 5.608223498566076
+    },
+    "latency_device": "host CPU, batch 1 (not target IoT hardware)",
+    "rho": 0.8643086816720257,
+    "expected_macs": 65756.2610932476,
+    "analytic_speedup_macs": 2.420301844326469,
+    "measured_cascade_mean_ms": 1.3777710005524568,
+    "measured_full_mean_ms": 3.102732999250293,
+    "measured_speedup": 2.2519947059461716,
+    "measured_on_windows": 200,
+    "size_kb_serialized": 86.525390625
+   },
+   "gate": {
+    "T1": 1.1288783550262451,
+    "T2": 3.0566494464874268,
+    "tau_b": 0.8778191804885864,
+    "tau_m": 0.8517992496490479,
+    "verify_alerts": false,
+    "target_fpr": 0.01,
+    "feasible": true,
+    "N_m": 1528,
+    "m_max": 2,
+    "m_calib": 2,
+    "ucp_calib": 0.004114495759968532,
+    "min_N_m": 598,
+    "epsilon": 0.005,
+    "alpha": 0.05,
+    "conservative": false,
+    "temperature_scaling": true,
+    "ece_sentinel_before": 0.016850118602587102,
+    "ece_sentinel_after": 0.012883080930188568
+   }
+  },
+  {
+   "stage": "int8_qat_float_gate",
+   "test": {
+    "n": 3110,
+    "rho_raw": 0.8755627009646302,
+    "rho_reweighted": {
+     "1pct": 0.9027226951105698,
+     "2pct": 0.9021584117129222,
+     "5pct": 0.9004655615199794
+    },
+    "exit_induced_miss_rate": 0.0,
+    "malicious_exited_benign_rate": 0.03599476439790576,
+    "cascade": {
+     "accuracy": 0.9366559485530547,
+     "precision": 0.9703180212014134,
+     "recall_malicious": 0.8985602094240838,
+     "recall_macro": 0.9360057684288561,
+     "f1_macro": 0.9364727710747929,
+     "fpr": 0.02654867256637168,
+     "mcc": 0.8754353436641334,
+     "tn": 1540,
+     "fp": 42,
+     "fn": 155,
+     "tp": 1373
+    },
+    "sentinel_only": {
+     "accuracy": 0.940192926045016,
+     "precision": 0.9765625,
+     "recall_malicious": 0.899869109947644,
+     "recall_macro": 0.9395047193227475,
+     "f1_macro": 0.9400051276604925,
+     "fpr": 0.020859671302149177,
+     "mcc": 0.8828305430089343,
+     "tn": 1549,
+     "fp": 33,
+     "fn": 153,
+     "tp": 1375
+    },
+    "analyst_only": {
+     "accuracy": 0.9327974276527331,
+     "precision": 0.9660777385159011,
+     "recall_malicious": 0.8946335078534031,
+     "recall_macro": 0.932146083888775,
+     "f1_macro": 0.9326030921554911,
+     "fpr": 0.03034134007585335,
+     "mcc": 0.8676856657780887,
+     "tn": 1534,
+     "fp": 48,
+     "fn": 161,
+     "tp": 1367
+    },
+    "tau_b": 0.8778191804885864,
+    "tau_m": 0.8517992496490479,
+    "T1": 1.1288783550262451,
+    "T2": 3.0566494464874268,
+    "recall_loss_vs_analyst": -0.003926701570680646,
+    "cascade_f1": 0.9364727710747929,
+    "analyst_only_f1": 0.9326030921554911,
+    "live_inference": {
+     "agreement_with_offline": 1.0,
+     "exit_agreement": 0.9993569131832798,
+     "analyst_invocations": 385,
+     "windows": 3110,
+     "analyst_skipped_fraction": 0.8762057877813505,
+     "seconds_total_batched": 0.15969790000235662
+    }
+   },
+   "profile": {
+    "params": {
+     "pip": 3712,
+     "stem": 912,
+     "sentinel_exit_only": 550,
+     "analyst_exit_only": 11182,
+     "sentinel_path_total": 5174,
+     "total": 16356
+    },
+    "macs_sentinel_path": 51094,
+    "macs_analyst_incremental": 108056,
+    "macs_full": 159150,
+    "latency_sentinel_path": {
+     "p50_ms": 1.1460499954409897,
+     "p95_ms": 1.888100049109198,
+     "mean_ms": 1.209011000173632
+    },
+    "latency_full_path": {
+     "p50_ms": 4.966250038705766,
+     "p95_ms": 6.49869000480976,
+     "mean_ms": 4.980078499938827
+    },
+    "latency_device": "host CPU, batch 1 (not target IoT hardware)",
+    "rho": 0.8755627009646302,
+    "expected_macs": 64540.196784565924,
+    "analytic_speedup_macs": 2.465905093708344,
+    "measured_cascade_mean_ms": 1.9497389998286963,
+    "measured_full_mean_ms": 5.181167498230934,
+    "measured_speedup": 2.6573646517232055,
+    "measured_on_windows": 200,
+    "size_kb_serialized": 50.2734375
+   },
+   "gate": {
+    "T1": 1.1288783550262451,
+    "T2": 3.0566494464874268,
+    "tau_b": 0.8778191804885864,
+    "tau_m": 0.8517992496490479,
+    "verify_alerts": false,
+    "target_fpr": 0.01,
+    "feasible": true,
+    "N_m": 1528,
+    "m_max": 2,
+    "m_calib": 2,
+    "ucp_calib": 0.004114495759968532,
+    "min_N_m": 598,
+    "epsilon": 0.005,
+    "alpha": 0.05,
+    "conservative": false,
+    "temperature_scaling": true,
+    "ece_sentinel_before": 0.016850118602587102,
+    "ece_sentinel_after": 0.012883080930188568
+   }
+  },
+  {
+   "stage": "int8_qat_recalibrated",
+   "test": {
+    "n": 3110,
+    "rho_raw": 0.8643086816720257,
+    "rho_reweighted": {
+     "1pct": 0.9006359006096069,
+     "2pct": 0.899881156465737,
+     "5pct": 0.8976169240341274
+    },
+    "exit_induced_miss_rate": 0.0,
+    "malicious_exited_benign_rate": 0.03599476439790576,
+    "cascade": {
+     "accuracy": 0.9366559485530547,
+     "precision": 0.9716513111268604,
+     "recall_malicious": 0.8972513089005235,
+     "recall_macro": 0.9359834294186562,
+     "f1_macro": 0.9364638640884411,
+     "fpr": 0.025284450063211124,
+     "mcc": 0.875597875693809,
+     "tn": 1542,
+     "fp": 40,
+     "fn": 157,
+     "tp": 1371
+    },
+    "sentinel_only": {
+     "accuracy": 0.940192926045016,
+     "precision": 0.9765625,
+     "recall_malicious": 0.899869109947644,
+     "recall_macro": 0.9395047193227475,
+     "f1_macro": 0.9400051276604925,
+     "fpr": 0.020859671302149177,
+     "mcc": 0.8828305430089343,
+     "tn": 1549,
+     "fp": 33,
+     "fn": 153,
+     "tp": 1375
+    },
+    "analyst_only": {
+     "accuracy": 0.9327974276527331,
+     "precision": 0.9660777385159011,
+     "recall_malicious": 0.8946335078534031,
+     "recall_macro": 0.932146083888775,
+     "f1_macro": 0.9326030921554911,
+     "fpr": 0.03034134007585335,
+     "mcc": 0.8676856657780887,
+     "tn": 1534,
+     "fp": 48,
+     "fn": 161,
+     "tp": 1367
+    },
+    "tau_b": 0.8574681878089905,
+    "tau_m": 0.8789088726043701,
+    "T1": 1.2458080053329468,
+    "T2": 3.0095431804656982,
+    "recall_loss_vs_analyst": -0.002617801047120394,
+    "cascade_f1": 0.9364638640884411,
+    "analyst_only_f1": 0.9326030921554911,
+    "live_inference": {
+     "agreement_with_offline": 1.0,
+     "exit_agreement": 0.9990353697749196,
+     "analyst_invocations": 421,
+     "windows": 3110,
+     "analyst_skipped_fraction": 0.8646302250803859,
+     "seconds_total_batched": 0.15666390000842512
+    }
+   },
+   "profile": {
+    "params": {
+     "pip": 3712,
+     "stem": 912,
+     "sentinel_exit_only": 550,
+     "analyst_exit_only": 11182,
+     "sentinel_path_total": 5174,
+     "total": 16356
+    },
+    "macs_sentinel_path": 51094,
+    "macs_analyst_incremental": 108056,
+    "macs_full": 159150,
+    "latency_sentinel_path": {
+     "p50_ms": 1.1602499871514738,
+     "p95_ms": 2.0336850458988915,
+     "mean_ms": 1.272789999784436
+    },
+    "latency_full_path": {
+     "p50_ms": 5.544850020669401,
+     "p95_ms": 7.486584997968747,
+     "mean_ms": 5.670526499161497
+    },
+    "latency_device": "host CPU, batch 1 (not target IoT hardware)",
+    "rho": 0.8643086816720257,
+    "expected_macs": 65756.2610932476,
+    "analytic_speedup_macs": 2.420301844326469,
+    "measured_cascade_mean_ms": 2.6185469998745248,
+    "measured_full_mean_ms": 7.2267805016599596,
+    "measured_speedup": 2.7598437232580713,
+    "measured_on_windows": 200,
+    "size_kb_serialized": 50.2734375
+   },
+   "gate": {
+    "T1": 1.2458080053329468,
+    "T2": 3.0095431804656982,
+    "tau_b": 0.8574681878089905,
+    "tau_m": 0.8789088726043701,
+    "verify_alerts": false,
+    "target_fpr": 0.01,
+    "feasible": true,
+    "N_m": 1528,
+    "m_max": 2,
+    "m_calib": 2,
+    "ucp_calib": 0.004114495759968532,
+    "min_N_m": 598,
+    "epsilon": 0.005,
+    "alpha": 0.05,
+    "conservative": false,
+    "temperature_scaling": true,
+    "ece_sentinel_before": 0.021191939970304698,
+    "ece_sentinel_after": 0.011776013657977752
+   }
+  }
+ ],
+ "stages_T": [
+  {
+   "stage": "joint_kd",
+   "test": {
+    "n": 3110,
+    "rho_raw": 0.8080385852090032,
+    "rho_reweighted": {
+     "1pct": 0.7966958370013436,
+     "2pct": 0.7969314970115368,
+     "5pct": 0.7976384770421164
+    },
+    "exit_induced_miss_rate": 0.0,
+    "malicious_exited_benign_rate": 0.020287958115183247,
+    "cascade": {
+     "accuracy": 0.9292604501607717,
+     "precision": 0.974600870827286,
+     "recall_malicious": 0.8789267015706806,
+     "recall_macro": 0.9284014038826854,
+     "f1_macro": 0.9289547648903211,
+     "fpr": 0.022123893805309734,
+     "mcc": 0.862277879603538,
+     "tn": 1547,
+     "fp": 35,
+     "fn": 185,
+     "tp": 1343
+    },
+    "sentinel_only": {
+     "accuracy": 0.9347266881028939,
+     "precision": 0.9762760603882099,
+     "recall_malicious": 0.8887434554973822,
+     "recall_macro": 0.9339418920976166,
+     "f1_macro": 0.9344795596421984,
+     "fpr": 0.020859671302149177,
+     "mcc": 0.8726196478614814,
+     "tn": 1549,
+     "fp": 33,
+     "fn": 170,
+     "tp": 1358
+    },
+    "analyst_only": {
+     "accuracy": 0.9257234726688103,
+     "precision": 0.9709513435003632,
+     "recall_malicious": 0.875,
+     "recall_macro": 0.9248577749683944,
+     "f1_macro": 0.9253993348961457,
+     "fpr": 0.025284450063211124,
+     "mcc": 0.8552089381168206,
+     "tn": 1542,
+     "fp": 40,
+     "fn": 191,
+     "tp": 1337
+    },
+    "tau_b": 0.949404776096344,
+    "tau_m": 0.8269444108009338,
+    "T1": 1.1018126010894775,
+    "T2": 2.7039005756378174,
+    "recall_loss_vs_analyst": -0.003926701570680646,
+    "cascade_f1": 0.9289547648903211,
+    "analyst_only_f1": 0.9253993348961457,
+    "live_inference": {
+     "agreement_with_offline": 1.0,
+     "exit_agreement": 1.0,
+     "analyst_invocations": 597,
+     "windows": 3110,
+     "analyst_skipped_fraction": 0.8080385852090032,
+     "seconds_total_batched": 0.07614329998614267
+    }
+   },
+   "profile": {
+    "params": {
+     "pip": 3712,
+     "stem": 912,
+     "sentinel_exit_only": 746,
+     "analyst_exit_only": 5450,
+     "sentinel_path_total": 5370,
+     "total": 10820
+    },
+    "macs_sentinel_path": 52928,
+    "macs_analyst_incremental": 54048,
+    "macs_full": 106976,
+    "latency_sentinel_path": {
+     "p50_ms": 0.7141000241972506,
+     "p95_ms": 1.3007950008613984,
+     "mean_ms": 0.7777519992669113
+    },
+    "latency_full_path": {
+     "p50_ms": 1.3564999972004443,
+     "p95_ms": 2.75540003494825,
+     "mean_ms": 1.5079245003289543
+    },
+    "latency_device": "host CPU, batch 1 (not target IoT hardware)",
+    "rho": 0.8080385852090032,
+    "expected_macs": 63303.1305466238,
+    "analytic_speedup_macs": 1.6899006269715273,
+    "measured_cascade_mean_ms": 2.0252970021101646,
+    "measured_full_mean_ms": 3.0074760006391443,
+    "measured_speedup": 1.4849555386225546,
+    "measured_on_windows": 200,
+    "size_kb_serialized": 63.361328125
+   }
+  },
+  {
+   "stage": "pruned_0.3",
+   "test": {
+    "n": 3110,
+    "rho_raw": 0.840192926045016,
+    "rho_reweighted": {
+     "1pct": 0.8437937099966244,
+     "2pct": 0.8437188991335774,
+     "5pct": 0.8434944665444364
+    },
+    "exit_induced_miss_rate": 0.0,
+    "malicious_exited_benign_rate": 0.021596858638743454,
+    "cascade": {
+     "accuracy": 0.9237942122186495,
+     "precision": 0.9701383831026948,
+     "recall_malicious": 0.8717277486910995,
+     "recall_macro": 0.9229055936881541,
+     "f1_macro": 0.9234484913878385,
+     "fpr": 0.025916561314791402,
+     "mcc": 0.8515362958304883,
+     "tn": 1541,
+     "fp": 41,
+     "fn": 196,
+     "tp": 1332
+    },
+    "sentinel_only": {
+     "accuracy": 0.9331189710610932,
+     "precision": 0.9748201438848921,
+     "recall_malicious": 0.8867801047120419,
+     "recall_macro": 0.9323281054533661,
+     "f1_macro": 0.9328630871106842,
+     "fpr": 0.022123893805309734,
+     "mcc": 0.869434277985995,
+     "tn": 1547,
+     "fp": 35,
+     "fn": 173,
+     "tp": 1355
+    },
+    "analyst_only": {
+     "accuracy": 0.9147909967845659,
+     "precision": 0.9619604974396488,
+     "recall_malicious": 0.8606020942408377,
+     "recall_macro": 0.9138661545793316,
+     "f1_macro": 0.9143818094458945,
+     "fpr": 0.03286978508217446,
+     "mcc": 0.8337231742508572,
+     "tn": 1530,
+     "fp": 52,
+     "fn": 213,
+     "tp": 1315
+    },
+    "tau_b": 0.9251278042793274,
+    "tau_m": 0.8046930432319641,
+    "T1": 0.9381740093231201,
+    "T2": 2.739733934402466,
+    "recall_loss_vs_analyst": -0.011125654450261813,
+    "cascade_f1": 0.9234484913878385,
+    "analyst_only_f1": 0.9143818094458945,
+    "live_inference": {
+     "agreement_with_offline": 1.0,
+     "exit_agreement": 1.0,
+     "analyst_invocations": 497,
+     "windows": 3110,
+     "analyst_skipped_fraction": 0.840192926045016,
+     "seconds_total_batched": 0.07409489998826757
+    }
+   },
+   "profile": {
+    "params": {
+     "pip": 3712,
+     "stem": 912,
+     "sentinel_exit_only": 550,
+     "analyst_exit_only": 3910,
+     "sentinel_path_total": 5174,
+     "total": 9084
+    },
+    "macs_sentinel_path": 51094,
+    "macs_analyst_incremental": 38648,
+    "macs_full": 89742,
+    "latency_sentinel_path": {
+     "p50_ms": 0.6428500055335462,
+     "p95_ms": 1.2785500119207425,
+     "mean_ms": 0.742585999541916
+    },
+    "latency_full_path": {
+     "p50_ms": 1.3700500130653381,
+     "p95_ms": 2.7874499675817757,
+     "mean_ms": 1.5687490018899553
+    },
+    "latency_device": "host CPU, batch 1 (not target IoT hardware)",
+    "rho": 0.840192926045016,
+    "expected_macs": 57270.223794212216,
+    "analytic_speedup_macs": 1.566992305154383,
+    "measured_cascade_mean_ms": 1.1123539981781505,
+    "measured_full_mean_ms": 1.683473001467064,
+    "measured_speedup": 1.5134327778965246,
+    "measured_on_windows": 200,
+    "size_kb_serialized": 55.986328125
+   }
+  },
+  {
+   "stage": "int8_qat_float_gate",
+   "test": {
+    "n": 3110,
+    "rho_raw": 0.8527331189710611,
+    "rho_reweighted": {
+     "1pct": 0.8576723496005454,
+     "2pct": 0.8575697308066534,
+     "5pct": 0.8572618744249774
+    },
+    "exit_induced_miss_rate": 0.0006544502617801048,
+    "malicious_exited_benign_rate": 0.024214659685863876,
+    "cascade": {
+     "accuracy": 0.927652733118971,
+     "precision": 0.9703971119133574,
+     "recall_malicious": 0.8795811518324608,
+     "recall_macro": 0.9268322952588347,
+     "f1_macro": 0.9273612724872529,
+     "fpr": 0.025916561314791402,
+     "mcc": 0.8586827684652583,
+     "tn": 1541,
+     "fp": 41,
+     "fn": 184,
+     "tp": 1344
+    },
+    "sentinel_only": {
+     "accuracy": 0.9327974276527331,
+     "precision": 0.976173285198556,
+     "recall_malicious": 0.8848167539267016,
+     "recall_macro": 0.9319785413122762,
+     "f1_macro": 0.9325266931103815,
+     "fpr": 0.020859671302149177,
+     "mcc": 0.8690357639097405,
+     "tn": 1549,
+     "fp": 33,
+     "fn": 176,
+     "tp": 1352
+    },
+    "analyst_only": {
+     "accuracy": 0.9170418006430868,
+     "precision": 0.9621542940320232,
+     "recall_malicious": 0.8651832460732984,
+     "recall_macro": 0.916156730495562,
+     "f1_macro": 0.9166690553250674,
+     "fpr": 0.03286978508217446,
+     "mcc": 0.8378834426495451,
+     "tn": 1530,
+     "fp": 52,
+     "fn": 206,
+     "tp": 1322
+    },
+    "tau_b": 0.9251278042793274,
+    "tau_m": 0.8046930432319641,
+    "T1": 0.9381740093231201,
+    "T2": 2.739733934402466,
+    "recall_loss_vs_analyst": -0.014397905759162333,
+    "cascade_f1": 0.9273612724872529,
+    "analyst_only_f1": 0.9166690553250674,
+    "live_inference": {
+     "agreement_with_offline": 0.9993569131832798,
+     "exit_agreement": 0.9993569131832798,
+     "analyst_invocations": 456,
+     "windows": 3110,
+     "analyst_skipped_fraction": 0.8533762057877814,
+     "seconds_total_batched": 0.09778579999692738
+    }
+   },
+   "profile": {
+    "params": {
+     "pip": 3712,
+     "stem": 912,
+     "sentinel_exit_only": 550,
+     "analyst_exit_only": 3910,
+     "sentinel_path_total": 5174,
+     "total": 9084
+    },
+    "macs_sentinel_path": 51094,
+    "macs_analyst_incremental": 38648,
+    "macs_full": 89742,
+    "latency_sentinel_path": {
+     "p50_ms": 1.2501500023063272,
+     "p95_ms": 2.330454997718332,
+     "mean_ms": 1.4504319985280745
+    },
+    "latency_full_path": {
+     "p50_ms": 2.7186499792151153,
+     "p95_ms": 3.925555021851323,
+     "mean_ms": 2.839725001831539
+    },
+    "latency_device": "host CPU, batch 1 (not target IoT hardware)",
+    "rho": 0.8527331189710611,
+    "expected_macs": 56785.570418006435,
+    "analytic_speedup_macs": 1.5803662680395165,
+    "measured_cascade_mean_ms": 1.6917419995297678,
+    "measured_full_mean_ms": 2.8668999994988553,
+    "measured_speedup": 1.6946437460887838,
+    "measured_on_windows": 200,
+    "size_kb_serialized": 39.296875
+   }
+  },
+  {
+   "stage": "int8_qat_recalibrated",
+   "test": {
+    "n": 3110,
+    "rho_raw": 0.8186495176848875,
+    "rho_reweighted": {
+     "1pct": 0.8204431397727047,
+     "2pct": 0.8204058749942084,
+     "5pct": 0.8202940806587193
+    },
+    "exit_induced_miss_rate": 0.0,
+    "malicious_exited_benign_rate": 0.017015706806282723,
+    "cascade": {
+     "accuracy": 0.9237942122186495,
+     "precision": 0.9694545454545455,
+     "recall_malicious": 0.8723821989528796,
+     "recall_macro": 0.922916763193254,
+     "f1_macro": 0.9234551056982521,
+     "fpr": 0.02654867256637168,
+     "mcc": 0.8514295588344754,
+     "tn": 1540,
+     "fp": 42,
+     "fn": 195,
+     "tp": 1333
+    },
+    "sentinel_only": {
+     "accuracy": 0.9327974276527331,
+     "precision": 0.976173285198556,
+     "recall_malicious": 0.8848167539267016,
+     "recall_macro": 0.9319785413122762,
+     "f1_macro": 0.9325266931103815,
+     "fpr": 0.020859671302149177,
+     "mcc": 0.8690357639097405,
+     "tn": 1549,
+     "fp": 33,
+     "fn": 176,
+     "tp": 1352
+    },
+    "analyst_only": {
+     "accuracy": 0.9170418006430868,
+     "precision": 0.9621542940320232,
+     "recall_malicious": 0.8651832460732984,
+     "recall_macro": 0.916156730495562,
+     "f1_macro": 0.9166690553250674,
+     "fpr": 0.03286978508217446,
+     "mcc": 0.8378834426495451,
+     "tn": 1530,
+     "fp": 52,
+     "fn": 206,
+     "tp": 1322
+    },
+    "tau_b": 0.9372468590736389,
+    "tau_m": 0.846082329750061,
+    "T1": 1.025103211402893,
+    "T2": 2.7222940921783447,
+    "recall_loss_vs_analyst": -0.007198952879581166,
+    "cascade_f1": 0.9234551056982521,
+    "analyst_only_f1": 0.9166690553250674,
+    "live_inference": {
+     "agreement_with_offline": 0.9993569131832798,
+     "exit_agreement": 0.9983922829581994,
+     "analyst_invocations": 563,
+     "windows": 3110,
+     "analyst_skipped_fraction": 0.8189710610932476,
+     "seconds_total_batched": 0.09783230000175536
+    }
+   },
+   "profile": {
+    "params": {
+     "pip": 3712,
+     "stem": 912,
+     "sentinel_exit_only": 550,
+     "analyst_exit_only": 3910,
+     "sentinel_path_total": 5174,
+     "total": 9084
+    },
+    "macs_sentinel_path": 51094,
+    "macs_analyst_incremental": 38648,
+    "macs_full": 89742,
+    "latency_sentinel_path": {
+     "p50_ms": 1.233350019901991,
+     "p95_ms": 2.0041450072312728,
+     "mean_ms": 1.3266409997595474
+    },
+    "latency_full_path": {
+     "p50_ms": 2.8457499865908176,
+     "p95_ms": 4.019664987572469,
+     "mean_ms": 2.937029999739025
+    },
+    "latency_device": "host CPU, batch 1 (not target IoT hardware)",
+    "rho": 0.8186495176848875,
+    "expected_macs": 58102.83344051447,
+    "analytic_speedup_macs": 1.5445374121363225,
+    "measured_cascade_mean_ms": 2.399077501904685,
+    "measured_full_mean_ms": 3.8408614994841628,
+    "measured_speedup": 1.6009743313564528,
+    "measured_on_windows": 200,
+    "size_kb_serialized": 39.296875
+   }
+  }
+ ],
+ "data": {
+  "split_mode": "group",
+  "split_groups": {
+   "train": [
+    "Synthetic_Device_05",
+    "Synthetic_Device_06",
+    "Synthetic_Device_00",
+    "Synthetic_Device_07",
+    "Synthetic_Device_03"
+   ],
+   "val": [
+    "Synthetic_Device_02"
+   ],
+   "calib": [
+    "Synthetic_Device_04",
+    "Synthetic_Device_09"
+   ],
+   "test": [
+    "Synthetic_Device_01",
+    "Synthetic_Device_08"
+   ]
+  },
+  "n_records": 16000,
+  "n_features": 115,
+  "windows": {
+   "train": {
+    "windows": 7775,
+    "malicious": 3820,
+    "benign": 3955
+   },
+   "val": {
+    "windows": 1555,
+    "malicious": 764,
+    "benign": 791
+   },
+   "calib": {
+    "windows": 3110,
+    "malicious": 1528,
+    "benign": 1582
+   },
+   "test": {
+    "windows": 3110,
+    "malicious": 1528,
+    "benign": 1582
+   }
+  }
+ },
+ "teacher": {
+  "val_f1": null,
+  "test": {
+   "accuracy": 0.9366559485530547,
+   "precision": 0.9777458722182341,
+   "recall_malicious": 0.8913612565445026,
+   "recall_macro": 0.935882903872757,
+   "f1_macro": 0.9364211391021462,
+   "fpr": 0.019595448798988623,
+   "mcc": 0.8764033765178147,
+   "tn": 1551,
+   "fp": 31,
+   "fn": 166,
+   "tp": 1362
+  }
+ },
+ "ablations": [
+  {
+   "name": "Full (PIP init + KD + self-KD + temp. scaling + CP gate)",
+   "flags": [],
+   "run_id": "cascade_R_fixture_42_8ab5",
+   "cascade_f1": 0.9383718255669826,
+   "recall": 0.8952879581151832,
+   "rho": 0.8819935691318328,
+   "exit_miss": 0.001963350785340314,
+   "analyst_f1": 0.9351644846872496,
+   "sentinel_f1": 0.9380915115947781
+  },
+  {
+   "name": "- PIP initialisation (random PIP)",
+   "flags": [
+    "--no-pip-init"
+   ],
+   "run_id": "cascade_R_fixture_42_e697",
+   "cascade_f1": 0.9195480135469095,
+   "recall": 0.8409685863874345,
+   "rho": 0.930225080385852,
+   "exit_miss": 0.0013089005235602095,
+   "analyst_f1": 0.9126648449876423,
+   "sentinel_f1": 0.9349986352115423
+  },
+  {
+   "name": "- teacher KD",
+   "flags": [
+    "--no-kd"
+   ],
+   "run_id": "cascade_R_fixture_42_fb79",
+   "cascade_f1": 0.9271185154184894,
+   "recall": 0.8887434554973822,
+   "rho": 0.8588424437299035,
+   "exit_miss": 0.001963350785340314,
+   "analyst_f1": 0.9206904058466802,
+   "sentinel_f1": 0.9445885702376025
+  },
+  {
+   "name": "- self-KD (Analyst->Sentinel)",
+   "flags": [
+    "--no-self-kd"
+   ],
+   "run_id": "cascade_R_fixture_42_f871",
+   "cascade_f1": 0.9312836155878299,
+   "recall": 0.8893979057591623,
+   "rho": 0.8694533762057878,
+   "exit_miss": 0.0013089005235602095,
+   "analyst_f1": 0.9283932168851039,
+   "sentinel_f1": 0.9361298537390453
+  },
+  {
+   "name": "- temperature scaling",
+   "flags": [
+    "--no-temp-scaling"
+   ],
+   "run_id": "cascade_R_fixture_42_986e",
+   "cascade_f1": 0.9383718255669826,
+   "recall": 0.8952879581151832,
+   "rho": 0.8819935691318328,
+   "exit_miss": 0.001963350785340314,
+   "analyst_f1": 0.9351644846872496,
+   "sentinel_f1": 0.9380915115947781
+  },
+  {
+   "name": "naive gate (tau=0.9, no T, no CP bound)",
+   "flags": [
+    "--naive-gate"
+   ],
+   "run_id": "cascade_R_fixture_42_9a0c",
+   "cascade_f1": 0.9387059645558864,
+   "recall": 0.8972513089005235,
+   "rho": 0.862700964630225,
+   "exit_miss": 0.0,
+   "analyst_f1": 0.9351644846872496,
+   "sentinel_f1": 0.9380915115947781
+  },
+  {
+   "name": "conservative CP gate (all benign-exit misses)",
+   "flags": [
+    "--conservative-gate"
+   ],
+   "run_id": "cascade_R_fixture_42_95c2",
+   "cascade_f1": 0.9364638640884411,
+   "recall": 0.8972513089005235,
+   "rho": 0.75016077170418,
+   "exit_miss": 0.0,
+   "analyst_f1": 0.9351644846872496,
+   "sentinel_f1": 0.9380915115947781
+  },
+  {
+   "name": "verify alerts (tau_m = never)",
+   "flags": [
+    "--verify-alerts"
+   ],
+   "run_id": "cascade_R_fixture_42_8be6",
+   "cascade_f1": 0.9370715205593865,
+   "recall": 0.8926701570680629,
+   "rho": 0.4919614147909968,
+   "exit_miss": 0.001963350785340314,
+   "analyst_f1": 0.9351644846872496,
+   "sentinel_f1": 0.9380915115947781
+  },
+  {
+   "name": "variant T (no BiGRU)",
+   "flags": [
+    "--variant",
+    "T"
+   ],
+   "run_id": "cascade_T_fixture_42_257b",
+   "cascade_f1": 0.9289547648903211,
+   "recall": 0.8789267015706806,
+   "rho": 0.8080385852090032,
+   "exit_miss": 0.0,
+   "analyst_f1": 0.9253993348961457,
+   "sentinel_f1": 0.9344795596421984
+  }
+ ],
+ "baselines": {
+  "teacher": {
+   "accuracy": 0.9366559485530547,
+   "precision": 0.9777458722182341,
+   "recall_malicious": 0.8913612565445026,
+   "recall_macro": 0.935882903872757,
+   "f1_macro": 0.9364211391021462,
+   "fpr": 0.019595448798988623,
+   "mcc": 0.8764033765178147,
+   "tn": 1551,
+   "fp": 31,
+   "fn": 166,
+   "tp": 1362,
+   "f1_macro_95ci": [
+    0.9278068538565558,
+    0.9433196186550169
+   ],
+   "recall_malicious_95ci": [
+    0.8766305970735694,
+    0.9049920764959137
+   ],
+   "params": 739843,
+   "macs": 7349632,
+   "activation_memory": 3212,
+   "size_fp32_kb": 2897.9580078125,
+   "size_int8_kb": 883.8154296875,
+   "size_int8_note": "torch dynamic INT8 (Linear/RNN weights only), serialized state_dict",
+   "latency_p50_ms": 2.570750017184764,
+   "latency_p95_ms": 5.332380038453263,
+   "latency_device": "host CPU (not target IoT hardware)",
+   "process_rss_mb": 512.30859375,
+   "model": "teacher",
+   "dataset": "fixture"
+  },
+  "b1": {
+   "accuracy": 0.9482315112540193,
+   "precision": 0.9796491228070175,
+   "recall_malicious": 0.9136125654450262,
+   "recall_macro": 0.9476406695745991,
+   "f1_macro": 0.9480992440386585,
+   "fpr": 0.018331226295828066,
+   "mcc": 0.8982910326249186,
+   "tn": 1553,
+   "fp": 29,
+   "fn": 132,
+   "tp": 1396,
+   "f1_macro_95ci": [
+    0.9398397889339428,
+    0.9545615058994494
+   ],
+   "recall_malicious_95ci": [
+    0.8982130319407875,
+    0.925136281483209
+   ],
+   "params": 75810,
+   "macs": 75712,
+   "activation_memory": 98,
+   "size_fp32_kb": 298.8330078125,
+   "size_int8_kb": 78.9990234375,
+   "size_int8_note": "torch dynamic INT8 (Linear/RNN weights only), serialized state_dict",
+   "latency_p50_ms": 0.08149998029693961,
+   "latency_p95_ms": 0.18884993041865525,
+   "latency_device": "host CPU (not target IoT hardware)",
+   "process_rss_mb": 504.1796875,
+   "model": "b1",
+   "dataset": "fixture"
+  },
+  "b2": {
+   "accuracy": 0.8983922829581994,
+   "precision": 0.9779179810725552,
+   "recall_malicious": 0.8115183246073299,
+   "recall_macro": 0.896909604781541,
+   "f1_macro": 0.8973458411883465,
+   "fpr": 0.017699115044247787,
+   "mcc": 0.807573540419493,
+   "tn": 1554,
+   "fp": 28,
+   "fn": 288,
+   "tp": 1240,
+   "f1_macro_95ci": [
+    0.887293689127968,
+    0.9068612551392016
+   ],
+   "recall_malicious_95ci": [
+    0.7930112605738584,
+    0.829490161001789
+   ],
+   "params": 94788,
+   "params_note": "tree nodes",
+   "macs": null,
+   "size_fp32_kb": 7437.6708984375,
+   "size_int8_kb": null,
+   "latency_p50_ms": 27.505750011187047,
+   "latency_p95_ms": 47.30794998467893,
+   "latency_device": "host CPU (not target IoT hardware)",
+   "model": "b2",
+   "dataset": "fixture"
+  },
+  "b3": {
+   "accuracy": 0.9257234726688103,
+   "precision": 0.9709513435003632,
+   "recall_malicious": 0.875,
+   "recall_macro": 0.9248577749683944,
+   "f1_macro": 0.9253993348961457,
+   "fpr": 0.025284450063211124,
+   "mcc": 0.8552089381168206,
+   "tn": 1542,
+   "fp": 40,
+   "fn": 191,
+   "tp": 1337,
+   "f1_macro_95ci": [
+    0.9161066324555095,
+    0.9332368544037097
+   ],
+   "recall_malicious_95ci": [
+    0.8589463794528146,
+    0.8896974319609744
+   ],
+   "params": 46466,
+   "macs": 458368,
+   "activation_memory": 2,
+   "size_fp32_kb": 184.1455078125,
+   "size_int8_kb": 50.5751953125,
+   "size_int8_note": "torch dynamic INT8 (Linear/RNN weights only), serialized state_dict",
+   "latency_p50_ms": 0.30670000705868006,
+   "latency_p95_ms": 0.7683900301344692,
+   "latency_device": "host CPU (not target IoT hardware)",
+   "process_rss_mb": 505.74609375,
+   "model": "b3",
+   "dataset": "fixture"
+  },
+  "b4": {
+   "accuracy": 0.929903536977492,
+   "precision": 0.9665242165242165,
+   "recall_malicious": 0.8880890052356021,
+   "recall_macro": 0.9291898882056645,
+   "f1_macro": 0.9296731593325434,
+   "fpr": 0.02970922882427307,
+   "mcc": 0.8623256936084166,
+   "tn": 1535,
+   "fp": 47,
+   "fn": 171,
+   "tp": 1357,
+   "f1_macro_95ci": [
+    0.9200639121067689,
+    0.9374513162761984
+   ],
+   "recall_malicious_95ci": [
+    0.8740773234637632,
+    0.9019089399218747
+   ],
+   "params": 92930,
+   "macs": 916736,
+   "activation_memory": 2,
+   "size_fp32_kb": 366.4423828125,
+   "size_int8_kb": 98.6240234375,
+   "size_int8_note": "torch dynamic INT8 (Linear/RNN weights only), serialized state_dict",
+   "latency_p50_ms": 0.40850002551451325,
+   "latency_p95_ms": 0.5126950563862919,
+   "latency_device": "host CPU (not target IoT hardware)",
+   "process_rss_mb": 509.64453125,
+   "model": "b4",
+   "dataset": "fixture"
+  },
+  "b5": {
+   "accuracy": 0.9353697749196141,
+   "precision": 0.9722419928825623,
+   "recall_malicious": 0.893979057591623,
+   "recall_macro": 0.934663359389996,
+   "f1_macro": 0.9351597501901041,
+   "fpr": 0.02465233881163085,
+   "mcc": 0.8732680897196102,
+   "tn": 1543,
+   "fp": 39,
+   "fn": 162,
+   "tp": 1366,
+   "f1_macro_95ci": [
+    0.9257256019420768,
+    0.9441547063661196
+   ],
+   "recall_malicious_95ci": [
+    0.8788779726642971,
+    0.9085728476777394
+   ],
+   "params": 50434,
+   "macs": 491776,
+   "activation_memory": 2,
+   "size_fp32_kb": 200.4423828125,
+   "size_int8_kb": 57.1240234375,
+   "size_int8_note": "torch dynamic INT8 (Linear/RNN weights only), serialized state_dict",
+   "latency_p50_ms": 0.8016499341465533,
+   "latency_p95_ms": 1.433710072888061,
+   "latency_device": "host CPU (not target IoT hardware)",
+   "process_rss_mb": 611.21875,
+   "fp32": {
+    "f1_macro": 0.9341943947614406,
+    "recall_malicious": 0.893324607329843,
+    "fpr": 0.025916561314791402
+   },
+   "evaluated_model": "dynamic INT8",
+   "model": "b5",
+   "dataset": "fixture"
+  },
+  "b6": {
+   "accuracy": 0.935048231511254,
+   "precision": 0.9742489270386266,
+   "recall_malicious": 0.8913612565445026,
+   "recall_macro": 0.9343026257438063,
+   "f1_macro": 0.9348200771841841,
+   "fpr": 0.022756005056890013,
+   "mcc": 0.8729349896252179,
+   "tn": 1546,
+   "fp": 36,
+   "fn": 166,
+   "tp": 1362,
+   "f1_macro_95ci": [
+    0.9251120473128686,
+    0.942605056096984
+   ],
+   "recall_malicious_95ci": [
+    0.8745854313333152,
+    0.9068017988765139
+   ],
+   "params": 88962,
+   "macs": 548736,
+   "activation_memory": 642,
+   "size_fp32_kb": 351.4990234375,
+   "size_int8_kb": 160.1181640625,
+   "size_int8_note": "torch dynamic INT8 (Linear/RNN weights only), serialized state_dict",
+   "latency_p50_ms": 0.542250054422766,
+   "latency_p95_ms": 1.2326800730079412,
+   "latency_device": "host CPU (not target IoT hardware)",
+   "process_rss_mb": 603.66796875,
+   "model": "b6",
+   "dataset": "fixture"
+  },
+  "b7": {
+   "accuracy": 0.9389067524115756,
+   "precision": 0.9771754636233951,
+   "recall_malicious": 0.8965968586387435,
+   "recall_macro": 0.9381846492940873,
+   "f1_macro": 0.9387014118696639,
+   "fpr": 0.020227560050568902,
+   "mcc": 0.8805096731813983,
+   "tn": 1550,
+   "fp": 32,
+   "fn": 158,
+   "tp": 1370,
+   "f1_macro_95ci": [
+    0.9316127312433445,
+    0.9462722954304833
+   ],
+   "recall_malicious_95ci": [
+    0.8836812306370736,
+    0.9115373272665993
+   ],
+   "params": 8014,
+   "macs": 77178,
+   "activation_memory": 1792,
+   "size_fp32_kb": 34.0830078125,
+   "size_int8_kb": 34.3876953125,
+   "size_int8_note": "torch dynamic INT8 (Linear/RNN weights only), serialized state_dict",
+   "latency_p50_ms": 0.5025499849580228,
+   "latency_p95_ms": 0.7302949670702217,
+   "latency_device": "host CPU (not target IoT hardware)",
+   "process_rss_mb": 604.140625,
+   "model": "b7",
+   "dataset": "fixture"
+  },
+  "b8": {
+   "accuracy": 0.9067524115755627,
+   "precision": 0.9310584958217271,
+   "recall_malicious": 0.875,
+   "recall_macro": 0.9062104930467763,
+   "f1_macro": 0.9065464525990842,
+   "fpr": 0.06257901390644753,
+   "mcc": 0.8146875946345686,
+   "tn": 1483,
+   "fp": 99,
+   "fn": 191,
+   "tp": 1337,
+   "f1_macro_95ci": [
+    0.8967112688881272,
+    0.9154077554434279
+   ],
+   "recall_malicious_95ci": [
+    0.8596972714269996,
+    0.8889197732722912
+   ],
+   "params": 20866,
+   "macs": 219904,
+   "activation_memory": 4802,
+   "size_fp32_kb": 91.0146484375,
+   "size_int8_kb": 60.6669921875,
+   "size_int8_note": "torch dynamic INT8 (Linear/RNN weights only), serialized state_dict",
+   "latency_p50_ms": 1.3015500153414905,
+   "latency_p95_ms": 3.4206849581096317,
+   "latency_device": "host CPU (not target IoT hardware)",
+   "process_rss_mb": 607.49609375,
+   "model": "b8",
+   "dataset": "fixture"
+  },
+  "b9": {
+   "accuracy": 0.9344051446945337,
+   "precision": 0.9728571428571429,
+   "recall_malicious": 0.8913612565445026,
+   "recall_macro": 0.9336705144922259,
+   "f1_macro": 0.9341797302950023,
+   "fpr": 0.02402022756005057,
+   "mcc": 0.8715508575649585,
+   "tn": 1544,
+   "fp": 38,
+   "fn": 166,
+   "tp": 1362,
+   "f1_macro_95ci": [
+    0.9254991722334467,
+    0.9409915999432534
+   ],
+   "recall_malicious_95ci": [
+    0.8762305681796017,
+    0.9045038331875667
+   ],
+   "params": 47714,
+   "macs": 469632,
+   "activation_memory": 2,
+   "size_fp32_kb": 189.8173828125,
+   "size_int8_kb": 53.1240234375,
+   "size_int8_note": "torch dynamic INT8 (Linear/RNN weights only), serialized state_dict",
+   "latency_p50_ms": 0.9322499972768128,
+   "latency_p95_ms": 1.174099976196885,
+   "latency_device": "host CPU (not target IoT hardware)",
+   "process_rss_mb": 608.41796875,
+   "model": "b9",
+   "dataset": "fixture"
+  },
+  "b10": {
+   "accuracy": 0.9414790996784566,
+   "precision": 0.9807142857142858,
+   "recall_malicious": 0.8985602094240838,
+   "recall_macro": 0.9407466028157081,
+   "f1_macro": 0.941277994674953,
+   "fpr": 0.01706700379266751,
+   "mcc": 0.8857717248834508,
+   "tn": 1555,
+   "fp": 27,
+   "fn": 155,
+   "tp": 1373,
+   "f1_macro_95ci": [
+    0.9326426442899735,
+    0.9486911832684433
+   ],
+   "recall_malicious_95ci": [
+    0.8840442459807383,
+    0.9119794754991157
+   ],
+   "params": 22402,
+   "macs": 221184,
+   "activation_memory": 2242,
+   "size_fp32_kb": 92.9248046875,
+   "size_int8_kb": 93.4814453125,
+   "size_int8_note": "torch dynamic INT8 (Linear/RNN weights only), serialized state_dict",
+   "latency_p50_ms": 2.683200058527291,
+   "latency_p95_ms": 3.9578049851115793,
+   "latency_device": "host CPU (not target IoT hardware)",
+   "process_rss_mb": 608.77734375,
+   "model": "b10",
+   "dataset": "fixture"
+  },
+  "b11": {
+   "accuracy": 0.9327974276527331,
+   "precision": 0.9647639182522904,
+   "recall_malicious": 0.8959424083769634,
+   "recall_macro": 0.9321684228989747,
+   "f1_macro": 0.9326123154857934,
+   "fpr": 0.0316055625790139,
+   "mcc": 0.8675308790591681,
+   "tn": 1532,
+   "fp": 50,
+   "fn": 159,
+   "tp": 1369,
+   "f1_macro_95ci": [
+    0.9255004090533174,
+    0.9404266010771717
+   ],
+   "recall_malicious_95ci": [
+    0.8812735135816248,
+    0.9095862324341666
+   ],
+   "params": 38786,
+   "macs": 386688,
+   "activation_memory": 2882,
+   "size_fp32_kb": 161.5146484375,
+   "size_int8_kb": 161.8837890625,
+   "size_int8_note": "torch dynamic INT8 (Linear/RNN weights only), serialized state_dict",
+   "latency_p50_ms": 1.3531999429687858,
+   "latency_p95_ms": 2.0941399969160557,
+   "latency_device": "host CPU (not target IoT hardware)",
+   "process_rss_mb": 612.78125,
+   "model": "b11",
+   "dataset": "fixture"
+  }
+ }
+}
